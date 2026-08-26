@@ -312,6 +312,61 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
 .push-right{margin-left:auto;}
 .approve-btn{color:#166534;border-color:#a7f3d0;background:#dcfce7;}
 .kpi-val-currency{font-size:20px;}
+.program-filters{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.program-filters .fi{max-width:360px;}
+.program-filters .fs{width:180px;}
+.notif-menu{position:fixed;top:60px;right:20px;width:320px;max-width:calc(100vw - 32px);background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:var(--shm);z-index:900;padding:14px;display:none;}
+.notif-menu.open{display:block;}
+.notif-menu-hdr{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:10px;}
+.notif-item{padding:10px 0;border-top:1px solid var(--bd);font-size:12px;color:var(--tx);}
+.notif-item small{display:block;color:var(--mu);margin-top:3px;}
+.user-menu{position:fixed;top:60px;right:20px;background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:var(--shm);z-index:900;padding:8px;display:none;}
+.user-menu.open{display:block;}
+.user-menu button{border:0;background:transparent;padding:8px 12px;color:var(--red);cursor:pointer;font-size:12px;}
+.auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:1100;display:none;align-items:center;justify-content:center;padding:20px;}
+.auth-overlay.open{display:flex;}
+.auth-card{width:380px;max-width:100%;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--shm);padding:24px;}
+.auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.auth-brand .sb-icon{background:var(--p);}
+.auth-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.auth-subtitle{font-size:12px;color:var(--mu);margin-bottom:18px;}
+.auth-error{font-size:11px;color:var(--red);margin-top:8px;display:none;}
+@media (max-width: 760px){
+  body{overflow:auto;height:auto;}
+  .app{height:auto;min-height:100vh;display:block;}
+  .sidebar{width:100%;height:auto;display:block;position:relative;}
+  .sb-brand{padding:12px 14px;}
+  .sb-section{display:flex;align-items:center;gap:4px;padding:6px 8px;overflow-x:auto;}
+  .sb-lbl{display:none;}
+  .nav{flex:0 0 auto;padding:8px 10px;font-size:11px;}
+  .nav i{font-size:14px;}
+  .sb-footer{display:none;}
+  .main{min-height:calc(100vh - 108px);overflow:visible;}
+  .topbar{height:48px;padding:0 12px;position:sticky;top:0;z-index:50;}
+  .content{overflow:visible;}
+  .screen{padding:14px 12px;}
+  .page-head,.row{align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  .action-group{width:100%;overflow-x:auto;padding-bottom:2px;}
+  .kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .kpi{padding:12px;min-width:0;}
+  .kpi-val{font-size:22px;}
+  .dash-grid{grid-template-columns:1fr;gap:12px;}
+  .dash-grid .full{grid-column:auto;}
+  .card-table,.tbl-wrap,.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .tbl{min-width:680px;}
+  .form-grid,.team-grid,.bom-meta{grid-template-columns:1fr;}
+  .span2{grid-column:auto;}
+  .panels{display:block;height:auto;}
+  .panel{min-height:260px;margin-bottom:12px;}
+  .detail-actions,.bom-toolbar,.po-actions{width:100%;overflow-x:auto;}
+  .po-filter{display:grid;grid-template-columns:1fr;align-items:stretch;}
+  .po-filter .fg{min-width:0;}
+  .program-filters{display:grid;grid-template-columns:1fr;}
+  .program-filters .fi,.program-filters .fs{max-width:none;width:100%;}
+  .modal{max-height:90vh;}
+  .toast{left:12px;right:12px;bottom:12px;justify-content:center;text-align:center;}
+  .notif-menu,.user-menu{top:54px;right:12px;}
+}
 </style>
 </head>
 <body>
@@ -354,8 +409,8 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
         <span class="bc-item cur">Dashboard</span>
       </div>
       <div class="tb-right">
-        <button class="notif" onclick="loadNotifications()" title="View notifications"><i class="ti ti-bell icon-notification"></i><span class="notif-dot"></span></button>
-        <div class="av">FB</div>
+        <button class="notif" onclick="toggleNotifications()" title="View notifications"><i class="ti ti-bell icon-notification"></i><span class="notif-dot"></span></button>
+        <button class="av" onclick="toggleUserMenu()" title="Account menu">FB</button>
       </div>
     </div>
 
@@ -485,6 +540,12 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
             <div style="font-size:12.5px;color:var(--mu);margin-top:2px;">All production programs across customers</div>
           </div>
           <button class="btn btn-p" onclick="goScreen('create',null,'Create Program')"><i class="ti ti-plus" style="font-size:13px"></i>New Program</button>
+        </div>
+        <div class="program-filters">
+          <input class="fi" id="program-search" type="search" placeholder="Search programs or customers..." oninput="renderProgramList()">
+          <select class="fs" id="program-status-filter" onchange="renderProgramList()">
+            <option value="">All statuses</option><option value="Active">Active</option><option value="In Review">In Review</option>
+          </select>
         </div>
         <div class="tbl-wrap">
           <table class="tbl" id="prog-list-tbl">
@@ -1296,7 +1357,24 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
 </div>
 
 <!-- Toast -->
+<div class="auth-overlay" id="auth-overlay">
+  <form class="auth-card" onsubmit="loginDemo(event)">
+    <div class="auth-brand"><div class="sb-icon"><i class="ti ti-needle-thread icon-brand"></i></div><div><div class="sb-name" style="color:var(--p)">StitchERP</div><div class="sb-sub" style="color:var(--mu);opacity:1">Production Suite</div></div></div>
+    <div class="auth-title">Sign in</div>
+    <div class="auth-subtitle">Use the demo account to continue testing.</div>
+    <div class="fg"><label class="fl">Username</label><input class="fi" id="demo-username" value="fahad.bhutta" autocomplete="username"></div>
+    <div class="fg" style="margin-top:12px"><label class="fl">Password</label><input class="fi" id="demo-password" type="password" value="Pakistan123!" autocomplete="current-password"></div>
+    <div class="auth-error" id="auth-error">Use the demo credentials shown in the form.</div>
+    <button class="btn btn-p full-width" style="margin-top:18px;justify-content:center" type="submit">Sign in</button>
+  </form>
+</div>
 <div class="toast" id="toast"></div>
+<div class="notif-menu" id="notif-menu">
+  <div class="notif-menu-hdr"><span>Notifications</span><button class="modal-close" onclick="toggleNotifications()"><i class="ti ti-x"></i></button></div>
+  <div class="notif-item">BOM awaiting manager approval<small>ABBASCO Abbas Home T200 Sateen</small></div>
+  <div class="notif-item">Purchase order ready for review<small>PO-2026-000001</small></div>
+</div>
+<div class="user-menu" id="user-menu"><button onclick="logoutDemo()"><i class="ti ti-logout"></i> Log out</button></div>
 
 <script>
 /* ═══════════════════════════════════════════════════
@@ -1562,7 +1640,13 @@ function renderDashboard(){
 ═══════════════════════════════════════════════════ */
 function renderProgramList(){
   const tbody=document.getElementById('prog-list-body');
-  tbody.innerHTML=programs.map(p=>{
+  const query=(document.getElementById('program-search')||{value:''}).value.trim().toLowerCase();
+  const status=(document.getElementById('program-status-filter')||{value:''}).value;
+  const filtered=programs.filter(p=>{
+    const matchesQuery=!query||[p.code,p.customer,p.brand,p.thread,p.weave].join(' ').toLowerCase().includes(query);
+    return matchesQuery&&(!status||p.status===status);
+  });
+  tbody.innerHTML=filtered.map(p=>{
     const combos=p.combos.length;
     const qty=p.combos.reduce((s,c)=>s+c.qty,0);
     return `<tr onclick="openProgramDetail(${p.id})">
@@ -1646,6 +1730,35 @@ async function loadNotifications(){
     if(!notifications.length){showToast('No new notifications','info');return;}
     showToast(`${notifications.length} role-based notification${notifications.length===1?'':'s'} available`,'info');
   }catch(error){showToast('Notifications unavailable','error');}
+}
+
+function toggleNotifications(){
+  document.getElementById('user-menu').classList.remove('open');
+  document.getElementById('notif-menu').classList.toggle('open');
+}
+
+function toggleUserMenu(){
+  document.getElementById('notif-menu').classList.remove('open');
+  document.getElementById('user-menu').classList.toggle('open');
+}
+
+function logoutDemo(){
+  document.getElementById('user-menu').classList.remove('open');
+  document.getElementById('auth-overlay').classList.add('open');
+}
+
+function loginDemo(event){
+  event.preventDefault();
+  const username=document.getElementById('demo-username').value.trim();
+  const password=document.getElementById('demo-password').value;
+  const error=document.getElementById('auth-error');
+  if(username!=='fahad.bhutta'||password!=='Pakistan123!'){
+    error.style.display='block';
+    return;
+  }
+  error.style.display='none';
+  document.getElementById('auth-overlay').classList.remove('open');
+  showToast('Signed in successfully','success');
 }
 
 function createProgramInBackend(program){
