@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StitchERP v5 — Production Suite</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+/* ── ROOT TOKENS ── */
+:root{
+  --p:#0b4637;--pl:#e6f4f0;--pm:#1d7a5f;--ac:#14b8a6;--ach:#0d9488;
+  --bg:#f8fafc;--card:#fff;--hov:#f1f5f9;
+  --tx:#1e293b;--mu:#64748b;--bd:#e2e8f0;
+  --red:#ef4444;--redl:#fef2f2;--amb:#f59e0b;--grn:#10b981;
+  --sh:0 1px 3px rgba(0,0,0,.05);--shm:0 4px 12px rgba(0,0,0,.08);
+  --r:8px;--rl:12px;--tr:all .15s ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden;}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;}
+.sidebar{width:230px;flex-shrink:0;background:var(--p);display:flex;flex-direction:column;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--card);border-bottom:1px solid var(--bd);height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px;}
+.content{flex:1;overflow-y:auto;}
+.screen{display:none;padding:24px;min-height:100%;}
+.screen.active{display:block;}
+
+/* ── SIDEBAR ── */
+.sb-brand{padding:20px 16px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;}
+.sb-icon{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;}
+.sb-name{font-size:14px;font-weight:700;color:#fff;}
+.sb-sub{font-size:10px;color:#a7f3d0;opacity:.8;}
+.sb-section{padding:16px 10px 4px;}
+.sb-lbl{font-size:10px;color:#6ee7b7;letter-spacing:.1em;text-transform:uppercase;padding:0 10px;margin-bottom:6px;font-weight:600;opacity:.7;}
+.nav{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;font-size:12.5px;color:#b9f3e1;cursor:pointer;transition:var(--tr);}
+.nav:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nav.active{background:rgba(255,255,255,.15);color:#fff;font-weight:600;}
+.nav i{font-size:15px;opacity:.9;}
+.sb-footer{margin-top:auto;padding:12px 10px;border-top:1px solid rgba(255,255,255,.08);}
+.user-row{display:flex;align-items:center;gap:9px;padding:8px 10px;}
+.u-av{width:28px;height:28px;border-radius:50%;background:#1d7a5f;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.u-name{font-size:12px;color:#b9f3e1;font-weight:500;}
+.u-role{font-size:10px;color:#6ee7b7;opacity:.7;}
+
+/* ── TOPBAR ── */
+.bc{display:flex;align-items:center;gap:5px;}
+.bc-item{font-size:12.5px;color:var(--mu);cursor:pointer;}
+.bc-item:hover{color:var(--tx);}
+.bc-item.cur{color:var(--tx);font-weight:600;cursor:default;}
+.bc-sep{font-size:11px;color:var(--bd);}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.notif{width:32px;height:32px;border-radius:7px;border:1px solid var(--bd);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.notif-dot{position:absolute;top:6px;right:7px;width:6px;height:6px;background:var(--red);border-radius:50%;}
+.av{width:30px;height:30px;border-radius:50%;background:#0f766e;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+
+/* ── BUTTONS ── */
+.btn{height:34px;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);transition:var(--tr);white-space:nowrap;}
+.btn:hover{background:var(--hov);}
+.btn-p{background:var(--p);color:#fff;border-color:var(--p);}
+.btn-p:hover{background:#062e24;border-color:#062e24;}
+.btn-o{color:var(--p);border-color:#a7f3d0;background:transparent;}
+.btn-o:hover{background:var(--pl);}
+.btn-d{color:var(--red);border-color:#fecaca;background:var(--redl);}
+.btn-d:hover{background:#fee2e2;}
+.btn-amb{color:#92400e;border-color:#fde68a;background:#fffbeb;}
+.btn-sm{height:28px;padding:0 10px;font-size:11.5px;}
+
+/* ── CARDS / PANELS ── */
+.card{background:var(--card);border:1px solid var(--bd);border-radius:var(--rl);box-shadow:var(--sh);overflow:hidden;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--bd);background:var(--bg);display:flex;align-items:center;gap:10px;}
+.card-ico{width:32px;height:32px;border-radius:7px;background:var(--pl);display:flex;align-items:center;justify-content:center;color:var(--p);font-size:15px;flex-shrink:0;}
+.card-title{font-size:13.5px;font-weight:600;color:var(--tx);}
+.card-sub{font-size:11.5px;color:var(--mu);margin-top:1px;}
+.card-body{padding:20px 20px;}
+
+/* ── PILLS / BADGES ── */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.pill-dot{width:5px;height:5px;border-radius:50%;}
+.pill-act{background:var(--pl);color:var(--p);}.pill-act .pill-dot{background:var(--ac);}
+.pill-draft{background:#f1f5f9;color:#475569;}.pill-draft .pill-dot{background:#94a3b8;}
+.pill-sub{background:#fef9c3;color:#854d0e;}.pill-sub .pill-dot{background:#d97706;}
+.pill-app{background:#dcfce7;color:#166534;}.pill-app .pill-dot{background:#16a34a;}
+.pill-rej{background:var(--redl);color:var(--red);}
+
+/* ── FORM FIELDS ── */
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fl{font-size:11.5px;font-weight:600;color:var(--tx);display:flex;align-items:center;gap:4px;}
+.req{color:var(--red);}
+.fi,.fs{width:100%;height:36px;border:1px solid var(--bd);border-radius:7px;padding:0 11px;font-size:12.5px;background:var(--card);color:var(--tx);outline:none;transition:var(--tr);}
+.fi:focus,.fs:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(20,184,166,.12);}
+.fi.req-field:focus:placeholder-shown{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,.12);}
+.fs{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer;}
+.fa{width:100%;border:1px solid var(--bd);border-radius:7px;padding:9px 11px;font-size:12.5px;background:var(--card);color:var(--tx);outline:none;resize:vertical;min-height:70px;transition:var(--tr);}
+.fa:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(20,184,166,.12);}
+.fhint{font-size:11px;color:var(--mu);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;}
+.span2{grid-column:span 2;}
+
+/* ── AUTO-GENERATED FIELD ── */
+.autogen-box{position:relative;}
+.autogen-inp{background:var(--pl)!important;border-color:#a7f3d0!important;color:var(--p)!important;font-weight:700!important;font-size:14px!important;height:44px!important;letter-spacing:.2px;}
+.autogen-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;background:var(--pl);color:var(--p);font-size:10.5px;font-weight:600;border:1px solid rgba(110,231,183,.5);}
+
+/* ── TOKEN CHIPS ── */
+.tokens{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.tok{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:500;border:1px dashed var(--bd);color:var(--mu);background:var(--bg);transition:var(--tr);}
+.tok.filled{background:var(--pl);color:var(--p);border:1px solid rgba(110,231,183,.4);}
+.tok-sep{font-size:12px;color:var(--mu);}
+
+/* ── TABLES ── */
+.tbl-wrap{border-radius:var(--rl);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh);}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:10.5px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;text-align:left;padding:10px 14px;border-bottom:2px solid var(--bd);background:var(--bg);white-space:nowrap;}
+.tbl td{font-size:12.5px;padding:12px 14px;border-bottom:1px solid var(--bd);color:var(--tx);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover td{background:var(--hov);cursor:pointer;}
+.tbl .center{text-align:center;}
+.tbl-link{color:var(--p);font-weight:600;text-decoration:none;cursor:pointer;}
+.tbl-link:hover{text-decoration:underline;}
+
+/* ── KPI CARDS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.kpi{background:var(--card);border:1px solid var(--bd);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh);cursor:pointer;transition:var(--tr);display:flex;flex-direction:column;gap:5px;}
+.kpi:hover{box-shadow:var(--shm);transform:translateY(-2px);}
+.kpi-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:4px;}
+.kpi-ico.g{background:#dcfce7;color:#166534;}.kpi-ico.b{background:#dbeafe;color:#1e40af;}
+.kpi-ico.a{background:#fef3c7;color:#92400e;}.kpi-ico.t{background:var(--pl);color:var(--p);}
+.kpi-ico.r{background:var(--redl);color:var(--red);}
+.kpi-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);}
+.kpi-val{font-size:26px;font-weight:800;color:var(--tx);letter-spacing:-1.2px;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--mu);}
+
+/* ── DASHBOARD GRID ── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.dash-grid .full{grid-column:span 2;}
+
+/* ── PROGRAM DETAIL PANELS ── */
+.panels{display:grid;grid-template-columns:1.8fr .9fr .9fr 2fr;gap:12px;height:calc(100vh - 140px);}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:var(--rl);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh);}
+.panel-tb{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid var(--bd);background:var(--bg);flex-shrink:0;}
+.panel-title{font-size:10.5px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;margin-right:auto;}
+.panel-count{font-size:10.5px;background:var(--pl);color:var(--p);padding:2px 7px;border-radius:20px;font-weight:700;}
+.tb-btn{height:26px;padding:0 8px;border-radius:6px;font-size:11.5px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--bd);background:var(--card);color:var(--tx);transition:var(--tr);}
+.tb-btn:hover{background:var(--hov);}
+.tb-btn.danger:hover{background:var(--redl);border-color:#fecaca;color:var(--red);}
+.panel-body{flex:1;overflow-y:auto;}
+.pt{width:100%;border-collapse:collapse;}
+.pt th{font-size:10px;font-weight:600;color:var(--mu);text-transform:uppercase;text-align:left;padding:9px 12px;border-bottom:1px solid var(--bd);background:var(--bg);position:sticky;top:0;z-index:1;}
+.pt td{font-size:12.5px;border-bottom:1px solid var(--bd);vertical-align:middle;}
+.pt tr:last-child td{border-bottom:none;}
+.pt tr:hover td{background:var(--hov);cursor:pointer;}
+.pt tr.sel td{background:#f0fdf4!important;}
+.cn{padding:9px 12px;color:var(--p);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci{padding:9px 12px;color:var(--mu);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cp{padding:9px 12px;display:flex;align-items:center;gap:7px;}
+.cdot{width:7px;height:7px;border-radius:50%;}
+.sz{padding:9px 12px;}
+.sbadge{display:inline-flex;padding:2px 8px;border-radius:5px;font-size:11.5px;font-weight:500;background:#f1f5f9;color:var(--tx);border:1px solid var(--bd);}
+.empty-st{padding:32px 12px;text-align:center;font-size:12px;color:var(--mu);font-style:italic;}
+.matrix-panel-hdr{background:#f0fdfa!important;border-bottom:1px solid #ccfbf1!important;}
+.matrix-panel-title{color:#0f766e!important;}
+.mx-row{display:flex;align-items:center;gap:7px;padding:10px 12px;font-size:12.5px;font-weight:500;border-bottom:1px solid var(--bd);}
+.mx-row:last-child{border-bottom:none;}
+.mx-art{color:#0369a1;font-weight:700;}.mx-cfg{color:#0f766e;}.mx-siz{background:#e2e8f0;color:#334155;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;}.mx-col{color:#6b21a8;font-weight:600;}
+
+/* ── DETAIL TOPBAR ── */
+.det-top{background:var(--card);border-bottom:1px solid var(--bd);height:50px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px;}
+.det-prog-lbl{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+.prog-sel{height:32px;border:1px solid var(--bd);border-radius:7px;padding:0 28px 0 10px;font-size:12.5px;font-weight:600;color:var(--tx);background:var(--bg);outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;max-width:420px;cursor:pointer;}
+.prog-sel:focus{border-color:var(--ac);}
+
+/* ── BOM SCREEN ── */
+.bom-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 20px;padding:16px 18px;background:var(--card);border:1px solid var(--bd);border-radius:var(--rl);box-shadow:var(--sh);margin-bottom:14px;}
+.bom-meta-item{display:flex;flex-direction:column;gap:3px;}
+.bm-lbl{font-size:10.5px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;}
+.bm-val{font-size:13px;font-weight:600;color:var(--p);}
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--bd);margin-bottom:14px;}
+.tab{height:38px;padding:0 20px;border:none;background:transparent;font-size:12.5px;font-weight:500;color:var(--mu);cursor:pointer;display:inline-flex;align-items:center;gap:6px;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--tr);}
+.tab:hover{color:var(--tx);background:var(--hov);}
+.tab.active{color:var(--p);font-weight:700;border-bottom:2px solid var(--p);}
+.bom-tbl th,.bom-tbl td{padding:9px 12px;}
+.bom-input{width:100%;height:28px;border:1px solid var(--bd);border-radius:5px;padding:0 7px;font-size:11.5px;background:var(--card);color:var(--tx);outline:none;}
+.bom-input:focus{border-color:var(--ac);box-shadow:0 0 0 2px rgba(20,184,166,.1);}
+.bom-input.fs{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:18px;cursor:pointer;}
+.bom-code{color:var(--p);font-weight:700;font-size:11.5px;white-space:nowrap;}
+.del-btn{width:24px;height:24px;border-radius:5px;border:1px solid #fecaca;background:var(--redl);color:var(--red);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px;}
+.del-btn:hover{background:#fee2e2;}
+.bom-list-section{margin-top:24px;}
+
+/* ── PO SCREEN ── */
+.po-hdr-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px 20px;margin-bottom:4px;}
+.po-hdr-grid .span2{grid-column:span 2;}
+.po-filter{display:flex;align-items:flex-end;gap:10px;margin-bottom:12px;padding:12px 14px;background:var(--card);border:1px solid var(--bd);border-radius:9px;}
+.po-filter .fg{flex:1;min-width:140px;}
+.po-tbl th{font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;padding:9px 8px;border-bottom:2px solid var(--bd);background:var(--bg);white-space:nowrap;}
+.po-tbl td{font-size:11.5px;padding:8px 8px;border-bottom:1px solid var(--bd);vertical-align:middle;}
+.po-tbl tr:last-child td{border-bottom:none;}
+.po-tbl tr:hover td{background:var(--hov);}
+.po-code{color:var(--p);font-weight:700;font-size:11px;white-space:nowrap;}
+.po-input{width:100%;height:26px;border:1px solid var(--bd);border-radius:5px;padding:0 6px;font-size:11.5px;background:var(--card);color:var(--tx);outline:none;}
+.po-input:focus{border-color:var(--ac);box-shadow:0 0 0 2px rgba(20,184,166,.1);}
+.po-input.fs{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center;padding-right:16px;cursor:pointer;}
+.split-btn{width:24px;height:24px;border-radius:5px;border:1px solid var(--bd);background:var(--bg);color:var(--mu);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;}
+.split-btn:hover{background:var(--pl);color:var(--p);}
+.po-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg);border-top:1px solid var(--bd);border-radius:0 0 12px 12px;}
+
+/* ── ACCESSORIES SCREEN ── */
+.acc-type-fields{display:none;}
+.acc-type-fields.visible{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;}
+.acc-item-code-preview{background:var(--pl)!important;border-color:#a7f3d0!important;color:var(--p)!important;font-weight:700!important;letter-spacing:.3px;}
+.acc-table-wrap{margin-top:24px;}
+
+/* ── TEAM SECTION ── */
+.team-section{border-top:1px solid var(--bd);padding:16px 20px;}
+.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px;}
+.mgr-card{display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--bd);border-radius:7px;background:var(--bg);margin-top:7px;}
+.mgr-av{width:28px;height:28px;border-radius:50%;background:#e0e7ff;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#4338ca;flex-shrink:0;}
+.mgr-name{font-size:12.5px;font-weight:600;color:var(--tx);}
+.mgr-role{font-size:11px;color:var(--mu);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--bd);}
+.tgl{width:34px;height:18px;border-radius:9px;background:#cbd5e1;border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .2s;}
+.tgl::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;}
+.tgl.on{background:var(--ac);}
+.tgl.on::after{transform:translateX(16px);}
+
+/* ── SECTION LABEL ── */
+.section-lbl{font-size:10.5px;font-weight:700;color:var(--p);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;}
+.row{display:flex;align-items:center;justify-content:space-between;}
+
+/* ── MODAL OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:1000;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden;}
+.modal-hdr{padding:14px 18px;border-bottom:1px solid var(--bd);background:var(--bg);display:flex;justify-content:space-between;align-items:center;}
+.modal-title{font-size:14px;font-weight:700;color:var(--tx);}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--mu);font-size:16px;display:flex;}
+.modal-body{padding:16px 18px;max-height:360px;overflow-y:auto;}
+.picker-search{width:100%;height:34px;border:1px solid var(--bd);border-radius:7px;padding:0 11px; font-size:12.5px;outline:none;margin-bottom:10px;}
+.picker-search:focus{border-color:var(--ac);}
+.picker-item{padding:9px 11px;border-radius:7px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:9px;border:1px solid transparent;transition:var(--tr);}
+.picker-item:hover{background:var(--hov);}
+.picker-item.sel{background:#ecfdf5;border-color:#6ee7b7;}
+.picker-item input[type=checkbox]{accent-color:var(--p);cursor:pointer;}
+.modal-footer{padding:12px 18px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:8px;}
+
+/* ── SPLIT MODAL ── */
+.split-row{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:end;margin-bottom:10px;}
+.split-total{font-size:11.5px;color:var(--mu);margin-top:6px;}
+.split-total.over{color:var(--red);font-weight:600;}
+.split-warn{font-size:11px;color:var(--red);margin-top:4px;display:none;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--p);color:#fff;padding:10px 18px;border-radius:9px;font-size:12.5px;font-weight:600;box-shadow:var(--shm);z-index:9999;display:flex;align-items:center;gap:7px;opacity:0;transition:opacity .25s;pointer-events:none;}
+.toast.show{opacity:1;}
+
+/* ── APPROVAL BAR ── */
+.approval-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--bd);}
+
+/* ── HIDDEN ── */
+.hidden{display:none!important;}
+
+/* ── REUSABLE LAYOUT UTILITIES ── */
+.icon-sm{font-size:13px;}
+.icon-xs{font-size:12px;}
+.icon-xxs{font-size:11px;}
+.page-head{margin-bottom:18px;}
+.page-title{font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.4px;}
+.page-subtitle{font-size:12.5px;color:var(--mu);margin-top:2px;}
+.action-group{display:flex;align-items:center;gap:8px;}
+.card-table{padding:0;}
+.card-pad{padding:16px;}
+.card-icon-warn{background:#fef3c7;color:#92400e;}
+.form-section{margin-bottom:14px;}
+.form-section-lg{margin-bottom:16px;}
+.form-section-top{margin-top:16px;}
+.form-actions{display:flex;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--bd);}
+.screen-detail{padding:0;}
+.detail-select-row{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.detail-actions{display:flex;gap:8px;}
+.detail-content{padding:14px;}
+.matrix-label{padding:6px 12px;font-size:10px;font-weight:600;color:#0f766e;letter-spacing:.05em;text-transform:uppercase;background:#f0fdfa;border-bottom:1px solid #ccfbf1;}
+.compact-card{margin-top:12px;}
+.compact-card-hdr{padding:10px 16px;}
+.compact-card-icon{width:28px;height:28px;font-size:13px;}
+.compact-card-title{font-size:12.5px;}
+.total-label{margin-left:auto;font-size:12px;color:var(--mu);}
+.total-value{color:var(--p);}
+.scroll-x{overflow-x:auto;}
+.section-heading{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px;}
+.wide-card{max-width:860px;}
+.saved-count{margin-left:8px;}
+.narrow-select{width:180px;height:32px;}
+.bom-meta-select{height:30px;font-size:12.5px;border:none;padding:0;background:transparent;color:var(--p);font-weight:600;appearance:none;cursor:pointer;width:100%;}
+.bom-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.bom-search{display:flex;border:1px solid var(--bd);border-radius:7px;overflow:hidden;background:var(--card);}
+.bom-search-input{height:34px;border:none;outline:none;padding:0 12px;font-size:12.5px;width:220px;background:transparent;}
+.bom-search-button{border-radius:0;border:none;height:34px;}
+.row-count{font-size:12px;color:var(--mu);}
+.table-footer{padding:10px 14px;background:var(--bg);border-top:1px solid var(--bd);border-radius:0 0 12px 12px;}
+.footer-actions{display:flex;gap:8px;}
+.po-header-card{margin-bottom:14px;}
+.po-number{background:var(--pl);color:var(--p);font-weight:700;}
+.align-end{align-self:end;}
+.full-width{width:100%;}
+.po-filter-input{height:34px;}
+.po-actions{display:flex;gap:8px;margin-bottom:10px;}
+.po-total{font-size:12.5px;font-weight:700;color:var(--p);}
+.icon-brand{color:#fff;font-size:17px;}
+.icon-notification{font-size:15px;color:var(--mu);}
+.push-right{margin-left:auto;}
+.approve-btn{color:#166534;border-color:#a7f3d0;background:#dcfce7;}
+.kpi-val-currency{font-size:20px;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-icon"><i class="ti ti-needle-thread icon-brand"></i></div>
+      <div><div class="sb-name">StitchERP</div><div class="sb-sub">Production Suite</div></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-lbl">Main</div>
+      <div class="nav active" onclick="goScreen('dashboard',this,'Dashboard')"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav" onclick="goScreen('programs',this,'Programs')"><i class="ti ti-files"></i>Programs</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-lbl">Production</div>
+      <div class="nav" onclick="goScreen('detail',this,'Program Detail')"><i class="ti ti-layout-columns"></i>BOM Workspace</div>
+      <div class="nav" onclick="goScreen('accessories',this,'Accessories')"><i class="ti ti-needle"></i>Accessories</div>
+      <div class="nav" onclick="goScreen('bom',this,'Create BOM')"><i class="ti ti-list-details"></i>Create BOM</div>
+      <div class="nav" onclick="goScreen('po',this,'Purchase Orders')"><i class="ti ti-file-invoice"></i>Purchase Orders</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-lbl">Reports</div>
+      <div class="nav" onclick="showToast('Reports module — coming soon','info')"><i class="ti ti-report-analytics"></i>Reports</div>
+    </div>
+    <div class="sb-footer">
+      <div class="user-row">
+        <div class="u-av">FB</div>
+        <div><div class="u-name">Fahad Bhutta</div><div class="u-role">Manager</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="bc" id="bc">
+        <span class="bc-item cur">Dashboard</span>
+      </div>
+      <div class="tb-right">
+        <button class="notif" onclick="loadNotifications()" title="View notifications"><i class="ti ti-bell icon-notification"></i><span class="notif-dot"></span></button>
+        <div class="av">FB</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ════════════════════════════════════════════
+           SCREEN: DASHBOARD
+      ════════════════════════════════════════════ -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="row page-head">
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-subtitle">Welcome back, Fahad. Here's your production overview.</div>
+          </div>
+          <div class="action-group">
+            <button class="btn btn-o" onclick="openWorkflows('p2p')"><i class="ti ti-arrows-left-right"></i>P2P workflow</button>
+            <button class="btn btn-p" onclick="openWorkflows('o2c')"><i class="ti ti-shopping-cart"></i>O2C workflow</button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi" onclick="goScreen('programs',document.querySelector('[onclick*=programs]'),'Programs')">
+            <div class="kpi-ico t"><i class="ti ti-files"></i></div>
+            <div class="kpi-lbl">Active Programs</div>
+            <div class="kpi-val" id="d-prog-count">3</div>
+            <div class="kpi-sub">3 in production</div>
+          </div>
+          <div class="kpi" onclick="goScreen('bom',document.querySelector('[onclick*=bom]'),'Create BOM')">
+            <div class="kpi-ico a"><i class="ti ti-list-check"></i></div>
+            <div class="kpi-lbl">Pending BOM Approvals</div>
+            <div class="kpi-val" id="d-bom-pend">1</div>
+            <div class="kpi-sub">Awaiting manager review</div>
+          </div>
+          <div class="kpi" onclick="goScreen('po',document.querySelector('[onclick*=po]'),'Purchase Orders')">
+            <div class="kpi-ico r"><i class="ti ti-file-invoice"></i></div>
+            <div class="kpi-lbl">Pending PO Approvals</div>
+            <div class="kpi-val" id="d-po-pend">1</div>
+            <div class="kpi-sub">Awaiting manager review</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-ico g"><i class="ti ti-currency-rupee"></i></div>
+            <div class="kpi-lbl">Total PO Value</div>
+            <div class="kpi-val kpi-val-currency">PKR 3.2M</div>
+            <div class="kpi-sub">Across all active POs</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <!-- BOM Approval Queue -->
+          <div class="card">
+            <div class="card-hdr"><div class="card-ico"><i class="ti ti-list-check"></i></div>
+              <div><div class="card-title">BOM Approval Queue</div><div class="card-sub">Submitted BOMs awaiting approval</div></div>
+            </div>
+            <div class="card-table">
+              <table class="tbl">
+                <thead><tr><th>Program</th><th>Article</th><th>Version</th><th>Submitted By</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><span class="tbl-link">ABBASCO Abbas Home 200TC Sateen</span></td>
+                    <td>Bed Sheet Set</td><td>v1</td><td>user1</td>
+                    <td><span class="pill pill-sub"><span class="pill-dot"></span>Submitted</span></td>
+                    <td>
+                      <button class="btn btn-sm approve-btn" onclick="approveBOM(this)"><i class="ti ti-check icon-xxs"></i>Approve</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PO Approval Queue -->
+          <div class="card">
+            <div class="card-hdr"><div class="card-ico card-icon-warn"><i class="ti ti-file-invoice"></i></div>
+              <div><div class="card-title">PO Approval Queue</div><div class="card-sub">Submitted POs awaiting approval</div></div>
+            </div>
+            <div class="card-table">
+              <table class="tbl">
+                <thead><tr><th>PO Number</th><th>Program</th><th>Type</th><th>Value</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><span class="tbl-link">PO-2026-000001</span></td>
+                    <td>BOUCHARA T144 Percale</td><td>Accessories</td><td>PKR 312,500</td>
+                    <td><span class="pill pill-sub"><span class="pill-dot"></span>Submitted</span></td>
+                    <td>
+                      <button class="btn btn-sm approve-btn" onclick="approvePO(this)"><i class="ti ti-check icon-xxs"></i>Approve</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recent Programs -->
+          <div class="card">
+            <div class="card-hdr"><div class="card-ico"><i class="ti ti-files"></i></div>
+              <div><div class="card-title">Recent Programs</div><div class="card-sub">Latest production programs</div></div>
+              <button class="btn btn-sm btn-o push-right" onclick="goScreen('programs',document.querySelectorAll('.nav')[1],'Programs')">View all</button>
+            </div>
+            <div class="card-table">
+              <table class="tbl">
+                <thead><tr><th>Program</th><th>Customer</th><th>SKUs</th><th>Order Qty</th><th>Status</th></tr></thead>
+                <tbody id="d-prog-list"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Accessory Breakdown -->
+          <div class="card">
+            <div class="card-hdr"><div class="card-ico card-icon-warn"><i class="ti ti-needle"></i></div>
+              <div><div class="card-title">Accessory Breakdown</div><div class="card-sub">By type</div></div>
+            </div>
+            <div class="card-pad">
+              <div id="d-acc-breakdown"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           SCREEN: PROGRAMS LIST
+      ════════════════════════════════════════════ -->
+      <div class="screen" id="screen-programs">
+        <div class="row" style="margin-bottom:18px;">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.4px;">Programs</div>
+            <div style="font-size:12.5px;color:var(--mu);margin-top:2px;">All production programs across customers</div>
+          </div>
+          <button class="btn btn-p" onclick="goScreen('create',null,'Create Program')"><i class="ti ti-plus" style="font-size:13px"></i>New Program</button>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl" id="prog-list-tbl">
+            <thead><tr><th>Program Name</th><th>Customer</th><th>Brand</th><th>Thread</th><th>Weave</th><th>Articles</th><th>Combos</th><th>Total Qty</th><th>Status</th></tr></thead>
+            <tbody id="prog-list-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           SCREEN: CREATE PROGRAM
+      ════════════════════════════════════════════ -->
+      <div class="screen" id="screen-create">
+        <div class="row" style="margin-bottom:18px;">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.4px;" id="create-page-title">Create Program</div>
+            <div style="font-size:12.5px;color:var(--mu);margin-top:2px;">Fill in details — program name is auto-generated</div>
+          </div>
+          <span class="pill pill-act" id="create-status-pill"><span class="pill-dot"></span>Active</span>
+        </div>
+
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-ico"><i class="ti ti-file-plus"></i></div>
+            <div><div class="card-title">Program Details</div><div class="card-sub">Fields marked * are required</div></div>
+          </div>
+          <div class="card-body">
+            <!-- Auto-generated name -->
+            <div class="fg" style="margin-bottom:14px;">
+              <label class="fl"><i class="ti ti-wand" style="font-size:13px;color:var(--ac)"></i> Program name <span class="autogen-badge" style="margin-left:6px;"><i class="ti ti-sparkles" style="font-size:10px"></i>Auto-generated</span></label>
+              <input id="c-progname" class="fi autogen-inp" type="text" readonly placeholder="Select customer, brand, thread count & weave below…">
+              <div class="tokens" id="c-tokens">
+                <span class="tok" id="tok-code"><i class="ti ti-hash" style="font-size:10px"></i>Customer code</span>
+                <span class="tok-sep">+</span>
+                <span class="tok" id="tok-brand"><i class="ti ti-tag" style="font-size:10px"></i>Brand</span>
+                <span class="tok-sep">+</span>
+                <span class="tok" id="tok-thread"><i class="ti ti-circles" style="font-size:10px"></i>Thread count</span>
+                <span class="tok-sep">+</span>
+                <span class="tok" id="tok-weave"><i class="ti ti-layout-grid" style="font-size:10px"></i>Weave design</span>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Customer</label>
+                <select id="c-customer" class="fs" onchange="onCustomerChange()">
+                  <option value="">— Select customer —</option>
+                  <option value="BOUCHARA|Bouchara">Bouchara</option>
+                  <option value="IKEA|IKEA">IKEA</option>
+                  <option value="ABBASCO|Abbas &amp; Co">Abbas &amp; Co</option>
+                  <option value="PRIMARK|Primark">Primark</option>
+                  <option value="WALMART|Walmart">Walmart</option>
+                  <option value="XYZGROUP|XYZ Home Group">XYZ Home Group</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Customer code</label>
+                <input id="c-code" class="fi" type="text" readonly placeholder="Auto-fills on customer select">
+                <span class="fhint">Generated from workspace selection</span>
+              </div>
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Brand name</label>
+                <select id="c-brand" class="fs" onchange="buildProgName()">
+                  <option value="">— Select brand —</option>
+                  <option>Bouchara Home</option><option>IKEA Home</option>
+                  <option>Abbas Home</option><option>XYZ Premium</option>
+                  <option>Primark Home</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Thread count</label>
+                <select id="c-thread" class="fs" onchange="buildProgName()">
+                  <option value="">— Select —</option>
+                  <option>144TC</option><option>200TC</option>
+                  <option>400TC</option><option>600TC</option>
+                </select>
+              </div>
+              <div class="fg span2">
+                <label class="fl"><span class="req">*</span> Weave design</label>
+                <select id="c-weave" class="fs" onchange="buildProgName()">
+                  <option value="">— Select —</option>
+                  <option>Percale</option><option>Sateen</option>
+                  <option>Twill</option><option>Jersey</option><option>Terry</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">Season</label>
+                <input id="c-season" class="fi" type="text" placeholder="e.g. SUMMER-26">
+              </div>
+              <div class="fg">
+                <label class="fl">Sale Order #</label>
+                <input id="c-so" class="fi" type="text" placeholder="e.g. 19626">
+              </div>
+              <div class="fg">
+                <label class="fl">Delivery Date</label>
+                <input id="c-ddate" class="fi" type="date">
+              </div>
+              <div class="fg">
+                <label class="fl">Currency</label>
+                <select id="c-curr" class="fs">
+                  <option value="PKR">PKR — Pakistani Rupee</option>
+                  <option value="USD">USD — US Dollar</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="GBP">GBP — British Pound</option>
+                </select>
+              </div>
+              <div class="fg span2">
+                <label class="fl">Remarks</label>
+                <textarea id="c-remarks" class="fa" placeholder="Additional notes…"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Assignment -->
+          <div class="team-section">
+            <div class="section-lbl">Team Assignment</div>
+            <div class="team-grid">
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Program manager</label>
+                <select id="c-pmgr" class="fs" onchange="updateMgrCard('pmgr-card',this.value,'Program Head')">
+                  <option value="">— Select —</option>
+                  <option value="Fahad Bhutta|FB">Fahad Bhutta — Senior PM</option>
+                  <option value="Ahmed Ali|AA">Ahmed Ali — PM</option>
+                </select>
+                <div class="mgr-card" id="pmgr-card" style="display:none;">
+                  <div class="mgr-av" id="pmgr-av"></div>
+                  <div><div class="mgr-name" id="pmgr-name"></div><div class="mgr-role">Program Head</div></div>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Line manager</label>
+                <select id="c-lmgr" class="fs" onchange="updateMgrCard('lmgr-card',this.value,'Line Lead')">
+                  <option value="">— Select —</option>
+                  <option value="Saad Khan|SK">Saad Khan — Supervisor</option>
+                  <option value="Bilal Ahmad|BA">Bilal Ahmad — Line Lead</option>
+                </select>
+                <div class="mgr-card" id="lmgr-card" style="display:none;">
+                  <div class="mgr-av" id="lmgr-av"></div>
+                  <div><div class="mgr-name" id="lmgr-name"></div><div class="mgr-role">Line Lead</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active toggle -->
+          <div class="toggle-row">
+            <div><div style="font-size:13px;font-weight:500;color:var(--tx);">Active program</div><div style="font-size:11.5px;color:var(--mu);margin-top:2px;">Enables scheduling and order assignment</div></div>
+            <button class="tgl on" id="c-active-tgl" onclick="this.classList.toggle('on')"></button>
+          </div>
+
+          <!-- Footer -->
+          <div style="padding:14px 20px;border-top:1px solid var(--bd);background:var(--bg);display:flex;align-items:center;justify-content:space-between;">
+            <button class="btn" onclick="goScreen('programs',null,'Programs')">Cancel</button>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-d hidden" id="c-del-btn">Delete Program</button>
+              <button class="btn btn-p" onclick="saveProgram()"><i class="ti ti-device-floppy" style="font-size:13px"></i>Save Program</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           SCREEN: PROGRAM DETAIL (BOM WORKSPACE)
+      ════════════════════════════════════════════ -->
+      <div class="screen screen-detail" id="screen-detail">
+        <div class="det-top">
+          <div class="detail-select-row">
+            <span class="det-prog-lbl">Program</span>
+            <select class="prog-sel" id="det-prog-sel" onchange="loadProgramDetail(this.value)">
+            </select>
+          </div>
+          <div class="detail-actions">
+            <button class="btn btn-o" onclick="generateMatrix()"><i class="ti ti-sparkles" style="font-size:13px"></i>Create Combination</button>
+            <button class="btn" onclick="goScreen('create',null,'Create Program')"><i class="ti ti-plus" style="font-size:13px"></i>New program</button>
+            <button class="btn btn-p" onclick="saveDetailChanges()"><i class="ti ti-device-floppy" style="font-size:13px"></i>Save changes</button>
+          </div>
+        </div>
+        <div class="detail-content">
+          <div class="panels" id="panels-wrap">
+            <!-- Panel 1: Articles -->
+            <div class="panel">
+              <div class="panel-tb">
+                <span class="panel-title">Articles</span>
+                <span class="panel-count" id="art-count">0</span>
+                <button class="tb-btn" onclick="openPicker('article')"><i class="ti ti-plus" style="font-size:12px"></i>Add</button>
+                <button class="tb-btn danger" onclick="deleteSelected('art')"><i class="ti ti-trash" style="font-size:12px"></i>Delete</button>
+              </div>
+              <div class="panel-body">
+                <table class="pt"><thead><tr><th style="width:50%">Article Name</th><th>Instructions</th></tr></thead>
+                <tbody id="art-tbody"></tbody></table>
+              </div>
+            </div>
+            <!-- Panel 2: Colors -->
+            <div class="panel">
+              <div class="panel-tb">
+                <span class="panel-title">Colors</span>
+                <span class="panel-count" id="col-count">0</span>
+                <button class="tb-btn" onclick="openPicker('color')"><i class="ti ti-plus" style="font-size:12px"></i>Add</button>
+                <button class="tb-btn danger" onclick="deleteSelected('col')"><i class="ti ti-trash" style="font-size:12px"></i>Delete</button>
+              </div>
+              <div class="panel-body">
+                <table class="pt"><thead><tr><th>Color</th></tr></thead>
+                <tbody id="col-tbody"></tbody></table>
+              </div>
+            </div>
+            <!-- Panel 3: Sizes -->
+            <div class="panel">
+              <div class="panel-tb">
+                <span class="panel-title">Sizes</span>
+                <span class="panel-count" id="siz-count">0</span>
+                <button class="tb-btn" onclick="openPicker('size')"><i class="ti ti-plus" style="font-size:12px"></i>Add</button>
+                <button class="tb-btn danger" onclick="deleteSelected('siz')"><i class="ti ti-trash" style="font-size:12px"></i>Delete</button>
+              </div>
+              <div class="panel-body">
+                <table class="pt"><thead><tr><th>Size</th></tr></thead>
+                <tbody id="siz-tbody"></tbody></table>
+              </div>
+            </div>
+            <!-- Panel 4: Matrix -->
+            <div class="panel">
+              <div class="panel-tb matrix-panel-hdr">
+                <span class="panel-title matrix-panel-title">Matrix Combinations</span>
+                <span class="panel-count" id="mx-count" style="background:#ccfbf1;color:#0f766e;">0</span>
+              </div>
+              <div style="padding:6px 12px;font-size:10px;font-weight:600;color:#0f766e;letter-spacing:.05em;text-transform:uppercase;background:#f0fdfa;border-bottom:1px solid #ccfbf1;">Generated Variant Configuration Matrix String</div>
+              <div class="panel-body" id="mx-body">
+                <div class="empty-st">Click "Create Combination" to generate</div>
+              </div>
+            </div>
+          </div>
+          <!-- Order Quantities -->
+          <div class="card compact-card">
+            <div class="card-hdr compact-card-hdr">
+              <div class="card-ico compact-card-icon"><i class="ti ti-table"></i></div>
+              <div><div class="card-title compact-card-title">Order Quantities</div></div>
+              <div class="total-label">Total SO Qty: <strong id="total-so-qty" class="total-value">0</strong></div>
+            </div>
+            <div class="scroll-x">
+              <table class="tbl" id="qty-tbl">
+                <thead><tr><th>SKU Code</th><th class="center">Order Qty</th><th class="center">Unit Price</th></tr></thead>
+                <tbody id="qty-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           SCREEN: ACCESSORIES
+      ════════════════════════════════════════════ -->
+      <div class="screen" id="screen-accessories">
+        <div class="row" style="margin-bottom:18px;">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.4px;">Accessories</div>
+            <div style="font-size:12.5px;color:var(--mu);margin-top:2px;">Define accessory items — used in BOM and PO</div>
+          </div>
+        </div>
+
+        <div class="card wide-card">
+          <div class="card-hdr">
+            <div class="card-ico"><i class="ti ti-pencil"></i></div>
+            <div><div class="card-title">Add Accessory</div><div class="card-sub">Select accessory type to see relevant fields</div></div>
+          </div>
+          <div class="card-body">
+            <div class="fg form-section-lg">
+              <label class="fl"><span class="req">*</span> Accessory Type</label>
+              <select id="acc-type" class="fs" onchange="onAccTypeChange()">
+                <option value="">— Select type —</option>
+                <option value="ZIP">Zipper</option>
+                <option value="BTN">Button</option>
+                <option value="LAB">Label (Care / Size)</option>
+                <option value="TAG">Hang Tag</option>
+                <option value="INS">Insert Card</option>
+                <option value="PBG">Poly Bag</option>
+                <option value="CTN">Carton</option>
+                <option value="PIP">Piping</option>
+                <option value="LAC">Lace</option>
+                <option value="ELS">Elastic</option>
+                <option value="DRS">Drawstring</option>
+                <option value="HAN">Hanger</option>
+              </select>
+            </div>
+
+            <!-- ZIP fields -->
+            <div class="acc-type-fields" id="acc-ZIP">
+              <div class="fg"><label class="fl"><span class="req">*</span> Zipper Type</label><select class="fs acc-seg2" onchange="updateAccCode()"><option value="">— Select —</option><option>Coil</option><option>Nylon</option><option>Metal</option><option>Invisible</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Size</label><select class="fs acc-seg3" onchange="updateAccCode()"><option value="">— Select —</option><option>#3</option><option>#5</option><option>#8</option></select></div>
+              <div class="fg"><label class="fl">Length (cm)</label><input class="fi" type="number" placeholder="e.g. 20"></div>
+              <div class="fg"><label class="fl">Color</label><input class="fi acc-color" type="text" placeholder="e.g. White" onchange="updateAccCode()"></div>
+              <div class="fg"><label class="fl">Teeth Color</label><select class="fs"><option>Silver</option><option>Brass</option><option>Rose Gold</option></select></div>
+              <div class="fg"><label class="fl">Slider Type</label><select class="fs"><option>Auto Lock</option><option>Non-Lock</option><option>Pin Lock</option></select></div>
+              <div class="fg"><label class="fl">End Type</label><select class="fs"><option>Open End</option><option>Closed End</option></select></div>
+              <div class="fg"><label class="fl">Brand</label><select class="fs"><option>YKK</option><option>SBS</option><option>Local</option></select></div>
+              <div class="fg"><label class="fl">Supplier</label><select class="fs" id="acc-zip-sup"><option>YKK Pakistan</option><option>SBS Pakistan</option><option>Local Supplier</option></select></div>
+            </div>
+
+            <!-- BTN fields -->
+            <div class="acc-type-fields" id="acc-BTN">
+              <div class="fg"><label class="fl"><span class="req">*</span> Button Type</label><select class="fs acc-seg2" onchange="updateAccCode()"><option value="">— Select —</option><option>Shirt</option><option>Snap</option><option>Decorative</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Size (Ligne)</label><select class="fs acc-seg3" onchange="updateAccCode()"><option value="">— Select —</option><option>18L</option><option>24L</option><option>32L</option></select></div>
+              <div class="fg"><label class="fl">Material</label><select class="fs"><option>Plastic</option><option>Wood</option><option>Metal</option></select></div>
+              <div class="fg"><label class="fl">Holes</label><select class="fs"><option>2 Hole</option><option>4 Hole</option><option>Shank</option></select></div>
+              <div class="fg"><label class="fl">Finish</label><select class="fs"><option>Matte</option><option>Glossy</option><option>Pearl</option></select></div>
+              <div class="fg"><label class="fl">Color</label><input class="fi acc-color" type="text" placeholder="e.g. White" onchange="updateAccCode()"></div>
+              <div class="fg"><label class="fl">Supplier</label><select class="fs"><option>Local Supplier</option><option>ABC Supplier</option></select></div>
+            </div>
+
+            <!-- LAB fields -->
+            <div class="acc-type-fields" id="acc-LAB">
+              <div class="fg"><label class="fl"><span class="req">*</span> Label Type</label><select class="fs acc-seg2" onchange="updateAccCode()"><option value="">— Select —</option><option>Care</option><option>Size</option><option>Main Brand</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Material</label><select class="fs acc-seg3" onchange="updateAccCode()"><option value="">— Select —</option><option>Satin</option><option>Damask</option><option>Polyester</option></select></div>
+              <div class="fg"><label class="fl">Width (mm)</label><input class="fi" type="number" placeholder="e.g. 30"></div>
+              <div class="fg"><label class="fl">Length (mm)</label><input class="fi" type="number" placeholder="e.g. 80"></div>
+              <div class="fg"><label class="fl">Print Color</label><input class="fi" type="text" placeholder="e.g. Black"></div>
+              <div class="fg"><label class="fl">Language</label><select class="fs"><option>— Select —</option><option>English</option><option>French</option><option>English/French</option><option>Arabic</option></select></div>
+              <div class="fg"><label class="fl">Wash Symbols</label><select class="fs"><option>No</option><option>Yes</option></select></div>
+              <div class="fg"><label class="fl">Supplier</label><select class="fs"><option>Local Supplier</option><option>ABC Labels</option></select></div>
+            </div>
+
+            <!-- TAG fields -->
+            <div class="acc-type-fields" id="acc-TAG">
+              <div class="fg"><label class="fl"><span class="req">*</span> Material</label><select class="fs acc-seg2" onchange="updateAccCode()"><option value="">— Select —</option><option>Art Card</option><option>Kraft</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> GSM</label><select class="fs acc-seg3" onchange="updateAccCode()"><option value="">— Select —</option><option>300G</option><option>350G</option><option>400G</option></select></div>
+              <div class="fg"><label class="fl">Width (mm)</label><input class="fi" type="number" placeholder="e.g. 50"></div>
+              <div class="fg"><label class="fl">Height (mm)</label><input class="fi" type="number" placeholder="e.g. 90"></div>
+              <div class="fg"><label class="fl">Lamination</label><select class="fs"><option>Matte</option><option>Gloss</option><option>Soft Touch</option></select></div>
+              <div class="fg"><label class="fl">Printing</label><select class="fs"><option>CMYK</option><option>Pantone</option></select></div>
+              <div class="fg"><label class="fl">Supplier</label><select class="fs"><option>Local Supplier</option></select></div>
+            </div>
+
+            <!-- PBG fields -->
+            <div class="acc-type-fields" id="acc-PBG">
+              <div class="fg"><label class="fl"><span class="req">*</span> Material</label><select class="fs acc-seg2" onchange="updateAccCode()"><option value="">— Select —</option><option>LDPE</option><option>HDPE</option><option>PP</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Thickness (Micron)</label><select class="fs acc-seg3" onchange="updateAccCode()"><option value="">— Select —</option><option>50MIC</option><option>75MIC</option><option>100MIC</option></select></div>
+              <div class="fg"><label class="fl">Width (cm)</label><input class="fi" type="number" placeholder="e.g. 40"></div>
+              <div class="fg"><label class="fl">Height (cm)</label><input class="fi" type="number" placeholder="e.g. 50"></div>
+              <div class="fg"><label class="fl">Warning Print</label><select class="fs"><option>No</option><option>Yes</option></select></div>
+              <div class="fg"><label class="fl">Vent Holes</label><input class="fi" type="number" placeholder="0"></div>
+              <div class="fg"><label class="fl">Recycle Logo</label><select class="fs"><option>No</option><option>Yes</option></select></div>
+              <div class="fg"><label class="fl">Supplier</label><select class="fs"><option>Ahmad Poly Bags (PVT) LTD</option><option>Local Supplier</option></select></div>
+            </div>
+
+            <!-- CTN fields -->
+            <div class="acc-type-fields" id="acc-CTN">
+              <div class="fg"><label class="fl"><span class="req">*</span> Ply</label><select class="fs acc-seg2" onchange="updateAccCode()"><option value="">— Select —</option><option>3PLY</option><option>5PLY</option><option>7PLY</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Size (LxWxH cm)</label><input class="fi acc-seg3" type="text" placeholder="e.g. 60X40X30" onchange="updateAccCode()"></div>
+              <div class="fg"><label class="fl">Material</label><select class="fs"><option>Corrugated</option></select></div>
+              <div class="fg"><label class="fl">Burst Strength PSI</label><input class="fi" type="number" placeholder="e.g. 180"></div>
+              <div class="fg"><label class="fl">Supplier</label><select class="fs"><option>Local Supplier</option></select></div>
+            </div>
+
+            <!-- Generic fields for remaining types -->
+            <div class="acc-type-fields" id="acc-INS">
+              <div class="fg"><label class="fl"><span class="req">*</span> Material</label><select class="fs acc-seg2" onchange="updateAccCode()"><option>Duplex Board</option><option>Art Card</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> GSM</label><select class="fs acc-seg3" onchange="updateAccCode()"><option>300G</option><option>350G</option></select></div>
+              <div class="fg"><label class="fl">Print Sides</label><select class="fs"><option>Single</option><option>Double</option></select></div>
+              <div class="fg"><label class="fl">Finish</label><select class="fs"><option>Matte</option><option>Gloss</option></select></div>
+            </div>
+            <div class="acc-type-fields" id="acc-PIP">
+              <div class="fg"><label class="fl"><span class="req">*</span> Width (mm)</label><select class="fs acc-seg2" onchange="updateAccCode()"><option>10MM</option><option>15MM</option><option>20MM</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Color</label><input class="fi acc-seg3" type="text" placeholder="e.g. White" onchange="updateAccCode()"></div>
+              <div class="fg"><label class="fl">Material</label><select class="fs"><option>Polyester</option><option>Cotton</option></select></div>
+            </div>
+            <div class="acc-type-fields" id="acc-LAC">
+              <div class="fg"><label class="fl"><span class="req">*</span> Width (mm)</label><select class="fs acc-seg2" onchange="updateAccCode()"><option>20MM</option><option>30MM</option><option>40MM</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Color</label><input class="fi acc-seg3" type="text" placeholder="e.g. White" onchange="updateAccCode()"></div>
+              <div class="fg"><label class="fl">Pattern</label><input class="fi" type="text" placeholder="e.g. Floral"></div>
+            </div>
+            <div class="acc-type-fields" id="acc-ELS">
+              <div class="fg"><label class="fl"><span class="req">*</span> Width (mm)</label><select class="fs acc-seg2" onchange="updateAccCode()"><option>10MM</option><option>20MM</option><option>30MM</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Color</label><input class="fi acc-seg3" type="text" placeholder="e.g. White" onchange="updateAccCode()"></div>
+            </div>
+            <div class="acc-type-fields" id="acc-DRS">
+              <div class="fg"><label class="fl"><span class="req">*</span> Material</label><select class="fs acc-seg2" onchange="updateAccCode()"><option>COTTON</option><option>POLY</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Diameter</label><select class="fs acc-seg3" onchange="updateAccCode()"><option>3MM</option><option>5MM</option><option>8MM</option></select></div>
+            </div>
+            <div class="acc-type-fields" id="acc-HAN">
+              <div class="fg"><label class="fl"><span class="req">*</span> Type</label><select class="fs acc-seg2" onchange="updateAccCode()"><option>PLASTIC</option><option>WOOD</option><option>METAL</option></select></div>
+              <div class="fg"><label class="fl"><span class="req">*</span> Size</label><select class="fs acc-seg3" onchange="updateAccCode()"><option>SMALL</option><option>MEDIUM</option><option>LARGE</option></select></div>
+            </div>
+
+            <!-- Item Code Preview (always at bottom) -->
+            <div class="fg" style="margin-top:16px;">
+              <label class="fl"><i class="ti ti-hash" style="font-size:12px;color:var(--ac)"></i> Item Code <span class="autogen-badge" style="margin-left:6px;"><i class="ti ti-sparkles" style="font-size:10px"></i>Auto-generated</span></label>
+              <input id="acc-item-code" class="fi acc-item-code-preview" type="text" readonly placeholder="Fills automatically from type + spec + variant">
+            </div>
+
+            <div class="form-actions">
+              <button class="btn" onclick="clearAccForm()"><i class="ti ti-x" style="font-size:12px"></i>Clear</button>
+              <button class="btn btn-p" onclick="saveAccessory()"><i class="ti ti-device-floppy" style="font-size:12px"></i>Save Accessory</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Saved Accessories List -->
+        <div class="acc-table-wrap">
+          <div class="row section-heading">
+            <div>Saved Accessories <span id="acc-saved-count" class="panel-count saved-count">0</span></div>
+            <select class="fs narrow-select" id="acc-filter-type" onchange="renderAccTable()">
+              <option value="">All Types</option>
+              <option value="ZIP">Zipper</option><option value="BTN">Button</option>
+              <option value="LAB">Label</option><option value="TAG">Hang Tag</option>
+              <option value="PBG">Poly Bag</option><option value="CTN">Carton</option>
+              <option value="INS">Insert Card</option><option value="PIP">Piping</option>
+              <option value="LAC">Lace</option><option value="ELS">Elastic</option>
+              <option value="DRS">Drawstring</option>
+            </select>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl"><thead><tr><th>Type</th><th>Item Code</th><th>Description</th><th>Supplier</th><th>UOM</th><th></th></tr></thead>
+            <tbody id="acc-saved-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           SCREEN: CREATE BOM
+      ════════════════════════════════════════════ -->
+      <div class="screen" id="screen-bom">
+        <div class="row" style="margin-bottom:16px;">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.4px;">Create BOM</div>
+            <div style="font-size:12.5px;color:var(--mu);margin-top:2px;">Bill of Materials — define fabric &amp; accessories per article</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="pill pill-draft" id="bom-status-pill"><span class="pill-dot"></span>Draft</span>
+            <button class="btn btn-amb" id="bom-submit-btn" onclick="submitBOM()"><i class="ti ti-send" style="font-size:13px"></i>Submit for Approval</button>
+            <button class="btn btn-p" onclick="saveBOM()"><i class="ti ti-device-floppy" style="font-size:13px"></i>Save Changes</button>
+          </div>
+        </div>
+
+        <!-- BOM Header -->
+        <div class="bom-meta">
+          <div class="bom-meta-item">
+            <div class="bm-lbl">Program Name</div>
+            <select class="fs bm-val" id="bom-prog-sel" onchange="onBOMProgChange()" style="height:30px;font-size:12.5px;border:none;padding:0;background:transparent;color:var(--p);font-weight:600;appearance:none;cursor:pointer;width:100%;">
+              <option value="">— Select program —</option>
+            </select>
+          </div>
+          <div class="bom-meta-item">
+            <div class="bm-lbl">Article Name</div>
+            <select class="fs bm-val" id="bom-art-sel" style="height:30px;font-size:12.5px;border:none;padding:0;background:transparent;color:var(--p);font-weight:600;appearance:none;cursor:pointer;width:100%;">
+              <option value="">— Optional —</option>
+            </select>
+          </div>
+          <div class="bom-meta-item">
+            <div class="bm-lbl">BOM Version</div>
+            <select class="fs bm-val" id="bom-ver-sel" onchange="onBOMVersionChange()" style="height:30px;font-size:12.5px;border:none;padding:0;background:transparent;color:var(--p);font-weight:600;appearance:none;cursor:pointer;width:100%;">
+              <option value="new">+ New Version</option>
+              <option value="v2">2 - Revised Version</option>
+              <option value="v1">1 - Original</option>
+            </select>
+          </div>
+          <div class="bom-meta-item">
+            <div class="bm-lbl">Approval Status</div>
+            <div class="bm-val" id="bom-appr-status">Draft</div>
+          </div>
+        </div>
+
+        <!-- Tabs: Fabric | Accessories -->
+        <div class="tab-bar">
+          <button class="tab active" onclick="switchBOMTab('fabric',this)"><i class="ti ti-shirt" style="font-size:14px"></i>Fabric</button>
+          <button class="tab" onclick="switchBOMTab('acc',this)"><i class="ti ti-needle" style="font-size:14px"></i>Accessories</button>
+        </div>
+
+        <!-- Fabric Pane -->
+        <div id="bom-fabric-pane">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+            <div style="display:flex;border:1px solid var(--bd);border-radius:7px;overflow:hidden;background:var(--card);">
+              <input type="text" id="bom-fab-search" placeholder="Search item code or description…" style="height:34px;border:none;outline:none;padding:0 12px;font-size:12.5px;width:220px;background:transparent;">
+              <button class="btn btn-p" style="border-radius:0;border:none;height:34px;" onclick="bomFabSearch()">Go</button>
+            </div>
+            <button class="btn btn-p" onclick="openBOMPicker('fabric')"><i class="ti ti-plus-circle" style="font-size:13px"></i>Add Fabric</button>
+            <button class="btn btn-d" onclick="deleteBOMSelected('fabric')"><i class="ti ti-trash" style="font-size:13px"></i>Delete Rows</button>
+            <span style="font-size:12px;color:var(--mu);" id="bom-fab-sel-count"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl bom-tbl">
+              <thead><tr>
+                <th style="width:36px;"><input type="checkbox" onclick="bomToggleAll('fabric',this.checked)" style="accent-color:var(--p);width:14px;height:14px;cursor:pointer;"></th>
+                <th style="width:110px;">Item Code</th>
+                <th>Description</th>
+                <th style="width:80px;" class="center">UOM</th>
+                <th style="width:90px;" class="center">Consumption</th>
+                <th style="width:75px;" class="center">Waste %</th>
+                <th style="width:55px;" class="center">Active</th>
+                <th style="width:40px;" class="center"></th>
+              </tr></thead>
+              <tbody id="bom-fab-tbody"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-top:1px solid var(--bd);border-radius:0 0 12px 12px;">
+            <span class="bom-row-count" id="bom-fab-count">0 items</span>
+            <div style="display:flex;gap:8px;">
+              <button class="btn" onclick="goScreen('programs',null,'Programs')"><i class="ti ti-arrow-left" style="font-size:12px"></i>Back to Programs</button>
+              <button class="btn btn-p" onclick="saveBOM()"><i class="ti ti-device-floppy" style="font-size:12px"></i>Save Changes</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accessories Pane -->
+        <div id="bom-acc-pane" class="hidden">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <button class="btn btn-p" onclick="openBOMPicker('acc')"><i class="ti ti-plus-circle" style="font-size:13px"></i>Add Accessory</button>
+            <button class="btn btn-d" onclick="deleteBOMSelected('acc')"><i class="ti ti-trash" style="font-size:13px"></i>Delete Rows</button>
+            <span style="font-size:12px;color:var(--mu);" id="bom-acc-sel-count"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl bom-tbl">
+              <thead><tr>
+                <th style="width:36px;"><input type="checkbox" onclick="bomToggleAll('acc',this.checked)" style="accent-color:var(--p);width:14px;height:14px;cursor:pointer;"></th>
+                <th style="width:110px;">Item Code</th>
+                <th>Description</th>
+                <th style="width:80px;" class="center">UOM</th>
+                <th style="width:90px;" class="center">Consumption</th>
+                <th style="width:75px;" class="center">Waste %</th>
+                <th style="width:55px;" class="center">Active</th>
+                <th style="width:40px;" class="center"></th>
+              </tr></thead>
+              <tbody id="bom-acc-tbody"></tbody>
+            </table>
+          </div>
+          <div style="padding:10px 14px;background:var(--bg);border-top:1px solid var(--bd);border-radius:0 0 12px 12px;">
+            <span class="bom-row-count" id="bom-acc-count">0 items</span>
+          </div>
+        </div>
+
+        <!-- Existing BOMs -->
+        <div style="margin-top:24px;">
+          <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:10px;">Previously Created BOMs</div>
+          <div class="tbl-wrap">
+            <table class="tbl"><thead><tr><th>Program</th><th>Article</th><th>Version</th><th>Status</th><th>Submitted</th><th>Approved By</th><th></th></tr></thead>
+            <tbody id="bom-list-tbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           SCREEN: PURCHASE ORDERS
+      ════════════════════════════════════════════ -->
+      <div class="screen" id="screen-po">
+        <div class="row" style="margin-bottom:16px;">
+          <div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-.4px;">Purchase Orders</div>
+            <div style="font-size:12.5px;color:var(--mu);margin-top:2px;">Create and manage fabric &amp; accessory purchase orders</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <span class="pill pill-draft" id="po-status-pill"><span class="pill-dot"></span>Draft</span>
+            <button class="btn btn-o" onclick="openWorkflows('p2p')"><i class="ti ti-arrows-left-right"></i>P2P tracker</button>
+            <button class="btn btn-amb" onclick="submitPO()"><i class="ti ti-send" style="font-size:12px"></i>Submit for Approval</button>
+            <button class="btn btn-p" onclick="savePO()"><i class="ti ti-device-floppy" style="font-size:12px"></i>Save PO</button>
+          </div>
+        </div>
+
+        <!-- PO Header -->
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-hdr"><div class="card-ico"><i class="ti ti-file-invoice"></i></div><div><div class="card-title">PO Header Information</div></div></div>
+          <div class="card-body">
+            <div class="po-hdr-grid">
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Program Name</label>
+                <select class="fs" id="po-prog-sel" onchange="onPOProgChange()" style="border-color:var(--ac);box-shadow:0 0 0 3px rgba(20,184,166,.1);">
+                  <option value="">— Select program —</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl"><span class="req">*</span> Customer</label>
+                <select class="fs" id="po-customer-sel">
+                  <option value="">Auto-fills from program</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">PO Number</label>
+                <input class="fi" id="po-number" type="text" readonly placeholder="Auto-generated on save" style="background:var(--pl);color:var(--p);font-weight:700;">
+              </div>
+              <div class="fg">
+                <label class="fl">Sale Order #</label>
+                <input class="fi" id="po-so-num" type="text" placeholder="e.g. 19626">
+              </div>
+              <div class="fg">
+                <label class="fl">PO Date</label>
+                <input class="fi" id="po-date" type="date">
+              </div>
+              <div class="fg">
+                <label class="fl">Delivery Date</label>
+                <input class="fi" id="po-del-date" type="date">
+              </div>
+              <div class="fg">
+                <label class="fl">Currency</label>
+                <select class="fs" id="po-curr">
+                  <option>PKR — Pakistani Rupee</option><option>USD — US Dollar</option>
+                  <option>EUR — Euro</option><option>GBP — British Pound</option>
+                </select>
+              </div>
+              <div class="fg" style="align-self:end;">
+                <button class="btn btn-p" onclick="loadFromBOM()" style="width:100%"><i class="ti ti-download" style="font-size:13px"></i>Load from Approved BOM</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tab-bar">
+          <button class="tab" onclick="switchPOTab('fabric',this)"><i class="ti ti-shirt" style="font-size:14px"></i>Fabric</button>
+          <button class="tab active" onclick="switchPOTab('acc',this)"><i class="ti ti-needle" style="font-size:14px"></i>Accessories</button>
+        </div>
+
+        <!-- Fabric Pane -->
+        <div id="po-fabric-pane" class="hidden">
+          <div class="po-filter">
+            <div class="fg"><label class="fl">Vendor Search</label><input class="fi" type="text" placeholder="Search vendor…" id="pof-vendor" oninput="renderPOFabTable()"></div>
+            <button class="btn" onclick="renderPOFabTable()">Apply</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button class="btn btn-p btn-sm" onclick="addPOFabRow()"><i class="ti ti-plus-circle" style="font-size:12px"></i>Add Row</button>
+            <button class="btn btn-d btn-sm" onclick="deletePOSelected('fab')"><i class="ti ti-trash" style="font-size:12px"></i>Delete Rows</button>
+            <span style="font-size:11.5px;color:var(--mu);" id="pof-sel-count"></span>
+          </div>
+          <div class="tbl-wrap" style="overflow-x:auto;">
+            <table class="tbl po-tbl">
+              <thead><tr>
+                <th style="width:32px;">SR#</th>
+                <th style="width:28px;"><input type="checkbox" style="accent-color:var(--p);width:13px;height:13px;cursor:pointer;" onclick="poToggleAll('fab',this.checked)"></th>
+                <th style="width:100px;">Item Code</th><th>Description</th>
+                <th style="width:55px;" class="center">UOM</th>
+                <th style="width:55px;" class="center">Curr.</th>
+                <th style="width:85px;" class="center">Consumption</th>
+                <th style="width:80px;" class="center">Total SO Qty</th>
+                <th style="width:75px;" class="center">Free Stock</th>
+                <th style="width:75px;" class="center">Alloc. Stock</th>
+                <th style="width:80px;" class="center">Total Cons.</th>
+                <th style="width:80px;" class="center">PO Qty</th>
+                <th style="width:70px;" class="center">Rate</th>
+                <th style="width:65px;" class="center">MOQ</th>
+                <th style="width:140px;">Vendor</th>
+                <th style="width:32px;" class="center"></th>
+              </tr></thead>
+              <tbody id="pof-tbody"></tbody>
+            </table>
+          </div>
+          <div class="po-footer">
+            <span style="font-size:11.5px;color:var(--mu);" id="pof-row-count">0 items</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="font-size:12.5px;font-weight:700;color:var(--p);" id="po-fab-total">Total: PKR 0</span>
+              <button class="btn btn-p" onclick="generatePO()"><i class="ti ti-file-check" style="font-size:13px"></i>Generate PO</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accessories Pane -->
+        <div id="po-acc-pane">
+          <div class="po-filter">
+            <div class="fg"><label class="fl">Accessory Category</label>
+              <select class="fs" id="poa-cat" onchange="renderPOAccTable()" style="height:34px;">
+                <option value="">All Categories</option>
+                <option value="ZIP">Zipper</option><option value="BTN">Button</option>
+                <option value="LAB">Label</option><option value="PBG">Poly Bag</option>
+                <option value="CTN">Carton</option><option value="TAG">Hang Tag</option>
+              </select>
+            </div>
+            <div class="fg"><label class="fl">Accessory Vendor</label>
+              <input class="fi" type="text" placeholder="Search vendor…" id="poa-vendor" oninput="renderPOAccTable()" style="height:34px;"></div>
+            <button class="btn" onclick="renderPOAccTable()">Apply</button>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button class="btn btn-p btn-sm" onclick="addPOAccRow()"><i class="ti ti-plus-circle" style="font-size:12px"></i>Add Row</button>
+            <button class="btn btn-d btn-sm" onclick="deletePOSelected('acc')"><i class="ti ti-trash" style="font-size:12px"></i>Delete Rows</button>
+            <span style="font-size:11.5px;color:var(--mu);" id="poa-sel-count"></span>
+          </div>
+          <div class="tbl-wrap" style="overflow-x:auto;">
+            <table class="tbl po-tbl">
+              <thead><tr>
+                <th style="width:32px;">SR#</th>
+                <th style="width:28px;"><input type="checkbox" style="accent-color:var(--p);width:13px;height:13px;cursor:pointer;" onclick="poToggleAll('acc',this.checked)"></th>
+                <th style="width:100px;">Item Code</th><th>Description</th>
+                <th style="width:55px;" class="center">UOM</th>
+                <th style="width:55px;" class="center">Curr.</th>
+                <th style="width:85px;" class="center">Consumption</th>
+                <th style="width:80px;" class="center">Total SO Qty</th>
+                <th style="width:75px;" class="center">Free Stock</th>
+                <th style="width:75px;" class="center">Alloc. Stock</th>
+                <th style="width:80px;" class="center">Total Cons.</th>
+                <th style="width:80px;" class="center">PO Qty</th>
+                <th style="width:70px;" class="center">Rate</th>
+                <th style="width:65px;" class="center">MOQ</th>
+                <th style="width:160px;">Vendor</th>
+                <th style="width:32px;" class="center">Split</th>
+              </tr></thead>
+              <tbody id="poa-tbody"></tbody>
+            </table>
+          </div>
+          <div class="po-footer">
+            <span style="font-size:11.5px;color:var(--mu);" id="poa-row-count">0 items</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="font-size:12.5px;font-weight:700;color:var(--p);" id="po-acc-total">Total: PKR 0</span>
+              <button class="btn btn-p" onclick="generatePO()"><i class="ti ti-file-check" style="font-size:13px"></i>Generate PO</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P2P CONTROL -->
+      <div class="screen" id="screen-p2p">
+        <div class="row" style="margin-bottom:18px;">
+          <div><div style="font-size:20px;font-weight:700;color:var(--tx);">P2P Control</div><div style="font-size:12.5px;color:var(--mu);margin-top:2px;">Procure to Pay lifecycle from approved PO to supplier payment</div></div>
+          <div class="action-group"><button class="btn btn-o" onclick="switchWorkflowFocus('o2c')"><i class="ti ti-shopping-cart"></i>O2C</button><button class="btn btn-p" onclick="createP2PDocument()"><i class="ti ti-plus"></i>New Receipt</button></div>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="kpi"><div class="kpi-ico t"><i class="ti ti-file-invoice"></i></div><div class="kpi-lbl">Approved POs</div><div class="kpi-val" id="p2p-po-count">1</div><div class="kpi-sub">Ready for receiving</div></div>
+          <div class="kpi"><div class="kpi-ico a"><i class="ti ti-package"></i></div><div class="kpi-lbl">Pending Receipts</div><div class="kpi-val" id="p2p-gr-count">1</div><div class="kpi-sub">Warehouse action</div></div>
+          <div class="kpi"><div class="kpi-ico r"><i class="ti ti-file-invoice"></i></div><div class="kpi-lbl">Invoice Holds</div><div class="kpi-val" id="p2p-hold-count">0</div><div class="kpi-sub">3-way match review</div></div>
+          <div class="kpi"><div class="kpi-ico g"><i class="ti ti-cash"></i></div><div class="kpi-lbl">To Pay</div><div class="kpi-val" id="p2p-pay-count">1</div><div class="kpi-sub">Approved invoices</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-ico"><i class="ti ti-arrows-left-right"></i></div><div><div class="card-title">P2P Document Tracker</div><div class="card-sub">Each action advances the selected document through the lifecycle</div></div></div>
+          <div style="padding:0;overflow-x:auto;"><table class="tbl"><thead><tr><th>Document</th><th>Vendor</th><th>PO</th><th>Receipt</th><th>Invoice</th><th>Payment</th><th>Next Action</th></tr></thead><tbody id="p2p-tracker-body"></tbody></table></div>
+        </div>
+        <div class="card" style="margin-top:16px;"><div class="card-hdr"><div class="card-ico" style="background:#fef3c7;color:#92400e;"><i class="ti ti-shield-check"></i></div><div><div class="card-title">Control Rules</div><div class="card-sub">Frontend preview of controls enforced later by the API</div></div></div><div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;"><div class="pill pill-act"><span class="pill-dot"></span>Approved PO required</div><div class="pill pill-act"><span class="pill-dot"></span>Accepted qty updates stock</div><div class="pill pill-act"><span class="pill-dot"></span>Invoice requires 3-way match</div></div></div>
+      </div>
+
+      <!-- O2C CONTROL -->
+      <div class="screen" id="screen-o2c">
+        <div class="row" style="margin-bottom:18px;">
+          <div><div style="font-size:20px;font-weight:700;color:var(--tx);">O2C Control</div><div style="font-size:12.5px;color:var(--mu);margin-top:2px;">Order to Cash lifecycle from customer order to payment</div></div>
+          <div class="action-group"><button class="btn btn-o" onclick="switchWorkflowFocus('p2p')"><i class="ti ti-arrows-left-right"></i>P2P</button><button class="btn btn-p" onclick="createO2CDocument()"><i class="ti ti-plus"></i>New Sales Order</button></div>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="kpi"><div class="kpi-ico b"><i class="ti ti-shopping-cart"></i></div><div class="kpi-lbl">Open Orders</div><div class="kpi-val" id="o2c-order-count">1</div><div class="kpi-sub">Awaiting fulfilment</div></div>
+          <div class="kpi"><div class="kpi-ico t"><i class="ti ti-lock"></i></div><div class="kpi-lbl">Reserved Qty</div><div class="kpi-val" id="o2c-reserved-count">200</div><div class="kpi-sub">Stock committed</div></div>
+          <div class="kpi"><div class="kpi-ico a"><i class="ti ti-truck-delivery"></i></div><div class="kpi-lbl">Ready to Ship</div><div class="kpi-val" id="o2c-delivery-count">1</div><div class="kpi-sub">Warehouse dispatch</div></div>
+          <div class="kpi"><div class="kpi-ico g"><i class="ti ti-cash"></i></div><div class="kpi-lbl">Receivables</div><div class="kpi-val" id="o2c-receivable-count">PKR 50K</div><div class="kpi-sub">Awaiting customer payment</div></div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-ico"><i class="ti ti-shopping-cart"></i></div><div><div class="card-title">O2C Document Tracker</div><div class="card-sub">Advance orders through reservation, delivery, invoice and payment</div></div></div>
+          <div style="padding:0;overflow-x:auto;"><table class="tbl"><thead><tr><th>Sales Order</th><th>Customer</th><th>Program</th><th>Reservation</th><th>Delivery</th><th>Invoice</th><th>Payment</th><th>Next Action</th></tr></thead><tbody id="o2c-tracker-body"></tbody></table></div>
+        </div>
+        <div class="card" style="margin-top:16px;"><div class="card-hdr"><div class="card-ico" style="background:#dcfce7;color:#166534;"><i class="ti ti-route"></i></div><div><div class="card-title">Fulfilment Controls</div><div class="card-sub">Quantities and financial state stay connected across the cycle</div></div></div><div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;"><div class="pill pill-act"><span class="pill-dot"></span>Reserve available stock</div><div class="pill pill-act"><span class="pill-dot"></span>Deliver only reserved qty</div><div class="pill pill-act"><span class="pill-dot"></span>Invoice delivered qty</div></div></div>
+      </div>
+
+    </div><!-- end content -->
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════ -->
+
+<!-- Lookup Picker -->
+<div class="overlay" id="picker-overlay" onclick="if(event.target===this)closePicker()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title" id="picker-title">Select</div>
+        <div style="font-size:11.5px;color:var(--mu);margin-top:2px;" id="picker-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closePicker()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <input class="picker-search" id="picker-search" type="text" placeholder="Search…" oninput="filterPicker()">
+      <div id="picker-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closePicker()">Cancel</button>
+      <button class="btn btn-p" onclick="confirmPicker()">Add Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- Split Vendor Modal -->
+<div class="overlay" id="split-overlay" onclick="if(event.target===this)closeSplit()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <div class="modal-title">Split to Multiple Vendors</div>
+        <div style="font-size:11.5px;color:var(--mu);margin-top:2px;" id="split-item-info"></div>
+      </div>
+      <button class="modal-close" onclick="closeSplit()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--redl);border:1px solid #fecaca;border-radius:7px;padding:9px 12px;margin-bottom:14px;font-size:11.5px;color:var(--red);">
+        <i class="ti ti-alert-triangle" style="font-size:13px;margin-right:5px;"></i>
+        Total split quantity <strong>cannot exceed</strong> required quantity.
+      </div>
+      <div class="split-row">
+        <div class="fg"><label class="fl">Vendor 1</label>
+          <select class="fs" id="sv1"><option value="">— Select vendor —</option></select></div>
+        <div class="fg"><label class="fl">Quantity</label>
+          <input class="fi" type="number" id="sq1" min="0" oninput="validateSplit()" placeholder="0"></div>
+      </div>
+      <div class="split-row">
+        <div class="fg"><label class="fl">Vendor 2</label>
+          <select class="fs" id="sv2"><option value="">— Select vendor —</option></select></div>
+        <div class="fg"><label class="fl">Quantity</label>
+          <input class="fi" type="number" id="sq2" min="0" oninput="validateSplit()" placeholder="0"></div>
+      </div>
+      <div class="split-row">
+        <div class="fg"><label class="fl">Vendor 3 (optional)</label>
+          <select class="fs" id="sv3"><option value="">— Optional —</option></select></div>
+        <div class="fg"><label class="fl">Quantity</label>
+          <input class="fi" type="number" id="sq3" min="0" oninput="validateSplit()" placeholder="0"></div>
+      </div>
+      <div class="split-total" id="split-total-lbl"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeSplit()">Cancel</button>
+      <button class="btn btn-p" id="split-save-btn" onclick="confirmSplit()" disabled>Confirm Split</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA STORE
+═══════════════════════════════════════════════════ */
+const LOOKUP_DATA=[
+  {article:'Bed Sheet Set',size:'Queen',color:'White'},{article:'Bed Sheet Set',size:'Queen',color:'Ivory'},
+  {article:'Bed Sheet Set',size:'King',color:'White'},{article:'Bed Sheet Set',size:'King',color:'Navy'},
+  {article:'Fitted Sheet',size:'Queen',color:'White'},{article:'Fitted Sheet',size:'King',color:'Grey'},
+  {article:'Flat Sheet',size:'Queen',color:'White'},{article:'Flat Sheet',size:'King',color:'Beige'},
+  {article:'Pillow Case',size:'Standard',color:'White'},{article:'Pillow Case',size:'King',color:'Ivory'},
+  {article:'Pillow Sham',size:'Standard',color:'Grey'},{article:'Duvet Cover',size:'Queen',color:'White'},
+  {article:'Duvet Cover',size:'King',color:'Navy'},{article:'Comforter',size:'Queen',color:'White'},
+  {article:'Comforter',size:'King',color:'Grey'},{article:'Quilt',size:'Queen',color:'Beige'},
+  {article:'Quilt',size:'King',color:'Navy'},{article:'Bed Spread',size:'Queen',color:'Cream'},
+  {article:'Bed Spread',size:'King',color:'Grey'},{article:'Mattress Protector',size:'Queen',color:'White'},
+  {article:'Mattress Protector',size:'King',color:'White'},{article:'Cushion Cover',size:'16x16',color:'Grey'},
+  {article:'Cushion Cover',size:'18x18',color:'Beige'},{article:'Cushion Cover',size:'20x20',color:'Navy'},
+  {article:'Cushion',size:'16x16',color:'White'},{article:'Cushion',size:'18x18',color:'Grey'},
+  {article:'Curtain',size:'54x84',color:'Beige'},{article:'Curtain',size:'54x96',color:'White'},
+  {article:'Window Panel',size:'54x84',color:'Grey'},{article:'Throw Blanket',size:'50x60',color:'Navy'},
+  {article:'Bath Towel',size:'30x54',color:'White'},{article:'Bath Towel',size:'35x70',color:'Ivory'},
+  {article:'Hand Towel',size:'16x28',color:'White'},{article:'Face Towel',size:'12x12',color:'White'},
+  {article:'Bath Mat',size:'20x30',color:'Grey'},{article:'Bath Robe',size:'Small',color:'White'},
+  {article:'Bath Robe',size:'Medium',color:'White'},{article:'Bath Robe',size:'Large',color:'White'},
+  {article:'Kitchen Towel',size:'18x28',color:'White'},{article:'Apron',size:'Standard',color:'Beige'},
+  {article:'Oven Mitt',size:'Standard',color:'Grey'},{article:'Pot Holder',size:'Standard',color:'Beige'},
+  {article:'Table Cloth',size:'60x90',color:'White'},{article:'Table Cloth',size:'70 Round',color:'Ivory'},
+];
+
+const LOOKUP_ARTICLES=[...new Set(LOOKUP_DATA.map(r=>r.article))].sort();
+const COLOR_MAP={White:'#f5f5f5',Ivory:'#fffff0',Navy:'#001f5b',Grey:'#9ca3af',Beige:'#d4b896',Cream:'#fffdd0',Khaki:'#c3b091'};
+
+const VENDORS=['Gul Ahmed Textile Mills','Nishat Mills Ltd','Interspan Fabrics','Ahmad Poly Bags (PVT) LTD','YKK Pakistan','SBS Pakistan','ABC Textiles','Local Supplier'];
+
+const FAB_ITEMS=[
+  {code:'FAB001001',desc:'100% Cotton T144 Percale Body Fabric — 254 cm Width',uom:'MTR'},
+  {code:'FAB001002',desc:'100% Cotton T144 Percale Piping Cord — 5 cm Width',uom:'MTR'},
+  {code:'FAB001003',desc:'Woven Interlining Collar Band — 90 cm Width',uom:'MTR'},
+  {code:'FAB001004',desc:'100% Cotton Terry 550GSM Bath Towel Fabric — 160 cm',uom:'MTR'},
+  {code:'FAB001005',desc:'100% Cotton T200 Percale Pillowcase Fabric — 200 cm',uom:'MTR'},
+];
+
+let programs=[
+  {id:1,code:'BOUCHARA Bouchara Home T144 Percale',customer:'Bouchara',custCode:'BOUCHARA',brand:'Bouchara Home',thread:'T144',weave:'Percale',so:'19626',season:'SUMMER-26',active:true,status:'Active',articles:[{id:1,name:'Bed Sheet Set',instructions:''},{id:2,name:'Pillow Case',instructions:''}],colors:[{id:1,name:'White'},{id:2,name:'Ivory'}],sizes:[{id:1,name:'Queen'},{id:2,name:'King'}],combos:[]},
+  {id:2,code:'IKEA IKEA Home T200 Jersey',customer:'IKEA',custCode:'IKEA',brand:'IKEA Home',thread:'T200',weave:'Jersey',so:'18901',season:'WINTER-25',active:true,status:'Active',articles:[{id:3,name:'Bath Mat',instructions:''}],colors:[{id:3,name:'Grey'}],sizes:[{id:3,name:'20x30'}],combos:[]},
+  {id:3,code:'ABBASCO Abbas Home T200 Sateen',customer:'Abbas & Co',custCode:'ABBASCO',brand:'Abbas Home',thread:'T200',weave:'Sateen',so:'ABBA-001',season:'SUMMER-26',active:true,status:'Active',articles:[{id:4,name:'Bed Sheet Set',instructions:''}],colors:[{id:4,name:'White'},{id:5,name:'Ivory'}],sizes:[{id:5,name:'Queen'}],combos:[]},
+];
+
+let accessories=[
+  {id:1,type:'ZIP',code:'ZIP.NYLON#3.WHT',desc:'Zipper Nylon #3 White YKK',supplier:'YKK Pakistan',uom:'PCS'},
+  {id:2,type:'ZIP',code:'ZIP.NYLON#5.BLK',desc:'Zipper Nylon #5 Black YKK',supplier:'YKK Pakistan',uom:'PCS'},
+  {id:3,type:'PBG',code:'PBG.40X50-50MIC.CLR',desc:'Poly Bag 40x50cm 50 Micron Clear',supplier:'Ahmad Poly Bags (PVT) LTD',uom:'PCS'},
+  {id:4,type:'PBG',code:'PBG.50X70-75MIC.CLR',desc:'Poly Bag 50x70cm 75 Micron Clear',supplier:'Ahmad Poly Bags (PVT) LTD',uom:'PCS'},
+  {id:5,type:'LAB',code:'LAB.CARE30X80.EN',desc:'Care Label 30x80mm English',supplier:'Local Supplier',uom:'PCS'},
+  {id:6,type:'CTN',code:'CTN.60X40X30.5PLY',desc:'Carton 60x40x30cm 5 Ply',supplier:'Local Supplier',uom:'PCS'},
+];
+
+let boms=[
+  {id:1,progId:1,progCode:'BOUCHARA Bouchara Home T144 Percale',article:'(Program Level)',version:'2 - Revised Version',status:'Approved',submittedBy:'user1',approvedBy:'manager1'},
+  {id:2,progId:3,progCode:'ABBASCO Abbas Home T200 Sateen',article:'Bed Sheet Set',version:'1 - Original',status:'Submitted',submittedBy:'user1',approvedBy:''},
+];
+
+let bomFabRows=[
+  {id:1,code:'FAB001001',desc:'TLC Linen Royale Prints T200 Sateen 100% Cotton Fabric — Body — 250 cm Width',uom:'MTR',consumption:1.15,waste:5,active:true,sel:false},
+  {id:2,code:'FAB001002',desc:'TLC Linen Royale Prints T200 Sateen 100% Cotton Fabric — Piping Cord Cover — 5 cm Width',uom:'MTR',consumption:0.45,waste:3,active:true,sel:false},
+  {id:3,code:'FAB001003',desc:'TLC Linen Royale Prints T200 Sateen Woven Interlining — Collar Band — 90 cm Width',uom:'MTR',consumption:0.12,waste:4,active:true,sel:false},
+  {id:4,code:'FAB001004',desc:'TLC Linen Royale Prints T200 Sateen 100% Cotton Poplin — Pocket Lining — 148 cm Width',uom:'MTR',consumption:0.3,waste:3,active:false,sel:false},
+];
+let bomAccRows=[
+  {id:1,code:'PBG.40X50-50MIC.CLR',desc:'Poly Bag 40x50cm 50 Micron Clear',uom:'PCS',consumption:1,waste:0,active:true,sel:false},
+  {id:2,code:'LAB.CARE30X80.EN',desc:'Care Label 30x80mm English',uom:'PCS',consumption:1,waste:0,active:true,sel:false},
+  {id:3,code:'CTN.60X40X30.5PLY',desc:'Carton 60x40x30cm 5 Ply',uom:'PCS',consumption:0.04,waste:2,active:true,sel:false},
+];
+
+let poAccRows=[
+  {id:1,type:'PBG',code:'BG0001869',desc:'(UDS) Bouchara T144 Percale Bulk Packing Bag 33 cm',uom:'KGS',curr:'PKR',consumption:0.001854,totalSO:272,freeStock:0,allocStock:0,totalCons:1,poQty:10,rate:250,moq:0,vendor:'Ahmad Poly Bags (PVT) LTD',sel:false},
+  {id:2,type:'PBG',code:'BG0001956',desc:'(UDS) Bouchara T144 Percale Bulk Packing Bag 33 cm',uom:'KGS',curr:'PKR',consumption:0.001854,totalSO:864,freeStock:0,allocStock:0,totalCons:2,poQty:4,rate:250,moq:0,vendor:'Ahmad Poly Bags (PVT) LTD',sel:false},
+  {id:3,type:'PBG',code:'BG0001956',desc:'(UDS) Bouchara T144 Percale Bulk Packing Bag 33 cm',uom:'KGS',curr:'PKR',consumption:0.001854,totalSO:2112,freeStock:0,allocStock:0,totalCons:4,poQty:2,rate:250,moq:0,vendor:'Ahmad Poly Bags (PVT) LTD',sel:false},
+  {id:4,type:'PBG',code:'BG0001948',desc:'(UDS) Bouchara T144 Percale Bulk Packing Bag 38 cm',uom:'KGS',curr:'PKR',consumption:0.001854,totalSO:258,freeStock:0,allocStock:0,totalCons:0,poQty:2,rate:250,moq:0,vendor:'Ahmad Poly Bags (PVT) LTD',sel:false},
+];
+let poFabRows=[
+  {id:1,type:'FAB',code:'FAB001001',desc:'100% Cotton T144 Percale — Body Fabric — 254 cm Width',uom:'MTR',curr:'PKR',consumption:1.15,totalSO:1800,freeStock:200,allocStock:50,totalCons:1870,poQty:1700,rate:185,moq:500,vendor:'Gul Ahmed Textile Mills',sel:false},
+  {id:2,type:'FAB',code:'FAB001002',desc:'100% Cotton T144 Percale — Piping Cord — 5 cm Width',uom:'MTR',curr:'PKR',consumption:0.45,totalSO:1800,freeStock:100,allocStock:20,totalCons:720,poQty:620,rate:42,moq:200,vendor:'Nishat Mills Ltd',sel:false},
+  {id:3,type:'FAB',code:'FAB001003',desc:'Woven Interlining — Collar Band — 90 cm Width',uom:'MTR',curr:'PKR',consumption:0.12,totalSO:1800,freeStock:0,allocStock:0,totalCons:216,poQty:216,rate:95,moq:100,vendor:'Interspan Fabrics',sel:false},
+];
+
+let activeProgId=1;
+let selA=null,selC=null,selS=null;
+let pickerMode='',pickerSelections=[];
+let splitLineId=null;
+let poAccRowId=poAccRows.length+1;
+let poFabRowId=poFabRows.length+1;
+let bomFabRowId=bomFabRows.length+1;
+let bomAccRowId=bomAccRows.length+1;
+let nid=100;
+let p2pDocs=[{id:1,po:'PO-2026-000001',vendor:'Stitch Accessories Supply',receipt:'Pending',invoice:'Not created',payment:'Not due',stage:0,backendId:null,lineId:null,invoiceId:null}];
+let o2cDocs=[{id:1,order:'SO-2026-000001',customer:'Abbas & Co',program:'ABBASCO Abbas Home T200 Sateen',reservation:'Not reserved',delivery:'Not ready',invoice:'Not created',payment:'Not due',stage:0,backendId:null,lineId:null,invoiceId:null}];
+const API_BASE='http://localhost:5251/api/v1';
+let backendConnected=false;
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════ */
+function goScreen(id,navEl,label){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+  if(navEl) navEl.classList.add('active');
+  // breadcrumb
+  document.getElementById('bc').innerHTML=`<span class="bc-item cur">${label}</span>`;
+  // init screens
+  if(id==='dashboard') renderDashboard();
+  else if(id==='programs') renderProgramList();
+  else if(id==='detail') initDetail();
+  else if(id==='accessories') renderAccTable();
+  else if(id==='bom') initBOM();
+  else if(id==='po') initPO();
+  else if(id==='create') initCreate();
+  else if(id==='p2p') renderP2P();
+  else if(id==='o2c') renderO2C();
+}
+
+function openWorkflows(focus){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-p2p').classList.add('active');
+  document.getElementById('screen-o2c').classList.add('active');
+  document.getElementById('bc').innerHTML=`<span class="bc-item cur">${focus==='p2p'?'P2P + O2C Control':'O2C + P2P Control'}</span>`;
+  renderP2P();
+  renderO2C();
+  document.querySelector('.content').scrollTop=0;
+  switchWorkflowFocus(focus);
+}
+
+function switchWorkflowFocus(focus){
+  const target=document.getElementById(`screen-${focus}`);
+  if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function workflowPill(value){
+  const tone=value==='Paid'||value==='Posted'||value==='Delivered'||value==='Received'||value==='Reserved'?'pill-act':value==='Pending'||value==='Ready'?'pill-sub':'pill-draft';
+  return `<span class="pill ${tone}"><span class="pill-dot"></span>${value}</span>`;
+}
+
+function renderP2P(){
+  const body=document.getElementById('p2p-tracker-body');
+  body.innerHTML=p2pDocs.map(d=>{
+    const actions=['Create Receipt','Run 3-way Match','Approve Payment','Completed'];
+    return `<tr><td><span class="tbl-link">${d.po}</span></td><td>${d.vendor}</td><td>${workflowPill('Approved')}</td><td>${workflowPill(d.receipt)}</td><td>${workflowPill(d.invoice)}</td><td>${workflowPill(d.payment)}</td><td>${d.stage<3?`<button class="btn btn-sm btn-p" onclick="advanceP2P(${d.id})"><i class="ti ti-arrow-right"></i>${actions[d.stage]}</button>`:workflowPill('Posted')}</td></tr>`;
+  }).join('');
+  document.getElementById('p2p-gr-count').textContent=p2pDocs.filter(d=>d.stage<1).length;
+  document.getElementById('p2p-hold-count').textContent=p2pDocs.filter(d=>d.invoice==='On hold').length;
+  document.getElementById('p2p-pay-count').textContent=p2pDocs.filter(d=>d.stage<3).length;
+}
+
+async function advanceP2P(id){
+  const d=p2pDocs.find(x=>x.id===id); if(!d)return;
+  try{
+    if(backendConnected){
+      if(d.stage===0){
+        const po=await apiFetch('/purchase-orders',{method:'POST',body:{organizationId:1,customerId:1,programId:1,vendorId:1,currencyCode:'PKR',lines:[{itemReferenceId:1,itemType:'ARTICLE',quantity:100,unitRate:250,vendorId:1}]}});
+        d.backendId=po.id; d.lineId=po.lines[0].id;
+        await apiFetch(`/purchase-orders/${d.backendId}/submit`,{method:'POST'});
+        await apiFetch(`/purchase-orders/${d.backendId}/approve`,{method:'POST'});
+        await apiFetch('/p2p/goods-receipts',{method:'POST',body:{purchaseOrderId:d.backendId,warehouseId:1,receivedBy:1,lines:[{purchaseOrderLineId:d.lineId,receivedQuantity:100,acceptedQuantity:95,rejectedQuantity:5}]}});
+      }else if(d.stage===1){
+        const invoice=await apiFetch('/p2p/supplier-invoices/match',{method:'POST',body:{vendorId:1,purchaseOrderId:d.backendId,totalAmount:23750,quantity:95,createdBy:1}}); d.invoiceId=invoice.id;
+      }else if(d.stage===2){
+        await apiFetch('/p2p/supplier-payments/post',{method:'POST',body:{vendorId:1,supplierInvoiceId:d.invoiceId,amount:23750,method:'BANK_TRANSFER',createdBy:1}});
+      }
+    }
+  }catch(error){showToast(error.message,'error');return;}
+  d.stage++;
+  if(d.stage===1){d.receipt='Received';d.invoice='Pending match';}
+  if(d.stage===2){d.invoice='Matched';d.payment='Approved';}
+  if(d.stage===3){d.payment='Paid';}
+  showToast(d.stage===3?'Supplier payment posted!':'P2P stage advanced successfully','success'); renderP2P();
+}
+
+function createP2PDocument(){
+  const id=++nid; p2pDocs.push({id,po:`PO-2026-${String(id).padStart(6,'0')}`,vendor:'New vendor',receipt:'Pending',invoice:'Not created',payment:'Not due',stage:0,backendId:null,lineId:null,invoiceId:null});
+  showToast('New goods receipt draft created','success'); renderP2P();
+}
+
+function renderO2C(){
+  const body=document.getElementById('o2c-tracker-body');
+  body.innerHTML=o2cDocs.map(d=>{
+    const actions=['Reserve Stock','Create Delivery','Generate Invoice','Post Payment'];
+    const next=d.stage<4?actions[d.stage]:'Completed';
+    return `<tr><td><span class="tbl-link">${d.order}</span></td><td>${d.customer}</td><td>${d.program}</td><td>${workflowPill(d.reservation)}</td><td>${workflowPill(d.delivery)}</td><td>${workflowPill(d.invoice)}</td><td>${workflowPill(d.payment)}</td><td>${d.stage<4?`<button class="btn btn-sm btn-p" onclick="advanceO2C(${d.id})"><i class="ti ti-arrow-right"></i>${next}</button>`:workflowPill('Closed')}</td></tr>`;
+  }).join('');
+  document.getElementById('o2c-order-count').textContent=o2cDocs.filter(d=>d.stage<4).length;
+  document.getElementById('o2c-reserved-count').textContent=o2cDocs.filter(d=>d.stage>=1&&d.stage<4).reduce((sum)=>sum+200,0);
+  document.getElementById('o2c-delivery-count').textContent=o2cDocs.filter(d=>d.stage>=2&&d.stage<4).length;
+  document.getElementById('o2c-receivable-count').textContent=o2cDocs.filter(d=>d.stage>=3&&d.stage<4).length?'PKR 50K':'PKR 0';
+}
+
+async function advanceO2C(id){
+  const d=o2cDocs.find(x=>x.id===id); if(!d)return;
+  try{
+    if(backendConnected){
+      if(d.stage===0){
+        const order=await apiFetch('/sales/orders',{method:'POST',body:{organizationId:1,customerId:1,programId:1,currencyCode:'PKR',createdBy:1,lines:[{inventoryItemId:1,itemType:'ARTICLE',description:'Bed Sheet Set',quantity:200,unitPrice:250}]}});
+        d.backendId=order.id; d.lineId=order.lines[0].id;
+        await apiFetch(`/sales/orders/${d.backendId}/submit`,{method:'POST'});
+        await apiFetch(`/sales/orders/${d.backendId}/approve`,{method:'POST'});
+        await apiFetch('/o2c/reservations',{method:'POST',body:{salesOrderId:d.backendId,salesOrderLineId:d.lineId,quantity:200,createdBy:1}});
+      }else if(d.stage===1){
+        await apiFetch(`/o2c/deliveries?salesOrderId=${d.backendId}&salesOrderLineId=${d.lineId}&quantity=200&warehouseId=1&shippedBy=1`,{method:'POST'});
+      }else if(d.stage===2){
+        const invoice=await apiFetch(`/o2c/invoices?salesOrderId=${d.backendId}&createdBy=1`,{method:'POST'}); d.invoiceId=invoice.id;
+      }else if(d.stage===3){
+        await apiFetch('/o2c/payments',{method:'POST',body:{customerId:1,customerInvoiceId:d.invoiceId,amount:50000,method:'BANK_TRANSFER',createdBy:1}});
+      }
+    }
+  }catch(error){showToast(error.message,'error');return;}
+  d.stage++;
+  if(d.stage===1)d.reservation='Reserved';
+  if(d.stage===2){d.delivery='Delivered';}
+  if(d.stage===3)d.invoice='Issued';
+  if(d.stage===4)d.payment='Paid';
+  showToast(d.stage===4?'Customer payment posted!':'O2C stage advanced successfully','success'); renderO2C();
+}
+
+function createO2CDocument(){
+  const id=++nid; o2cDocs.push({id,order:`SO-2026-${String(id).padStart(6,'0')}`,customer:'New customer',program:'New sales order',reservation:'Not reserved',delivery:'Not ready',invoice:'Not created',payment:'Not due',stage:0,backendId:null,lineId:null,invoiceId:null});
+  showToast('New sales order draft created','success'); renderO2C();
+}
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════ */
+function renderDashboard(){
+  // programs list
+  const tbody=document.getElementById('d-prog-list');
+  tbody.innerHTML=programs.map(p=>{
+    const combos=p.combos.length;
+    const qty=p.combos.reduce((s,c)=>s+c.qty,0);
+    return `<tr onclick="goScreen('detail',document.querySelectorAll('.nav')[2],'BOM Workspace')">
+      <td><span class="tbl-link">${p.code}</span></td>
+      <td>${p.customer}</td>
+      <td>${combos}</td>
+      <td>${qty}</td>
+      <td><span class="pill pill-act"><span class="pill-dot"></span>${p.status}</span></td>
+    </tr>`;
+  }).join('');
+  // accessory breakdown
+  const types={ZIP:0,BTN:0,LAB:0,PBG:0,CTN:0,TAG:0,INS:0,PIP:0,LAC:0,ELS:0,DRS:0};
+  accessories.forEach(a=>{ if(types[a.type]!==undefined) types[a.type]++; });
+  const colors={ZIP:'#14b8a6',BTN:'#6366f1',LAB:'#f59e0b',PBG:'#10b981',CTN:'#8b5cf6',TAG:'#f43f5e',INS:'#0ea5e9',PIP:'#d97706',LAC:'#059669',ELS:'#7c3aed',DRS:'#dc2626'};
+  const labels={ZIP:'Zipper',BTN:'Button',LAB:'Label',PBG:'Poly Bag',CTN:'Carton',TAG:'Hang Tag',INS:'Insert',PIP:'Piping',LAC:'Lace',ELS:'Elastic',DRS:'Drawstring'};
+  const total=Object.values(types).reduce((a,b)=>a+b,0)||1;
+  document.getElementById('d-acc-breakdown').innerHTML=Object.entries(types).filter(([,v])=>v>0).map(([k,v])=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;">
+      <div style="font-size:12px;color:var(--tx);min-width:90px;white-space:nowrap;">${labels[k]||k}</div>
+      <div style="flex:1;height:7px;background:var(--bd);border-radius:4px;overflow:hidden;"><div style="height:100%;border-radius:4px;background:${colors[k]||'#64748b'};width:${Math.round(v/total*100)}%;"></div></div>
+      <div style="font-size:11px;color:var(--mu);min-width:18px;text-align:right;">${v}</div>
+    </div>`).join('')||'<div style="font-size:12px;color:var(--mu);">No accessories yet</div>';
+}
+
+/* ═══════════════════════════════════════════════════
+   PROGRAM LIST
+═══════════════════════════════════════════════════ */
+function renderProgramList(){
+  const tbody=document.getElementById('prog-list-body');
+  tbody.innerHTML=programs.map(p=>{
+    const combos=p.combos.length;
+    const qty=p.combos.reduce((s,c)=>s+c.qty,0);
+    return `<tr onclick="openProgramDetail(${p.id})">
+      <td><span class="tbl-link">${p.code}</span></td>
+      <td>${p.customer}</td><td>${p.brand}</td><td>${p.thread}</td><td>${p.weave}</td>
+      <td class="center">${p.articles.length}</td>
+      <td class="center">${combos}</td>
+      <td class="center">${qty}</td>
+      <td><span class="pill pill-act"><span class="pill-dot"></span>${p.status}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--mu);font-style:italic;">No programs yet — click New Program</td></tr>';
+}
+
+function openProgramDetail(id){
+  activeProgId=id;
+  goScreen('detail',document.querySelectorAll('.nav')[2],'BOM Workspace');
+}
+
+/* ═══════════════════════════════════════════════════
+   CREATE PROGRAM
+═══════════════════════════════════════════════════ */
+function initCreate(){
+  // reset form
+  ['c-customer','c-code','c-brand','c-thread','c-weave','c-season','c-so','c-remarks'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value='';}
+  });
+  document.getElementById('c-progname').value='';
+  ['tok-code','tok-brand','tok-thread','tok-weave'].forEach(id=>{
+    document.getElementById(id).classList.remove('filled');
+  });
+  ['pmgr-card','lmgr-card'].forEach(id=>{ document.getElementById(id).style.display='none'; });
+  document.getElementById('c-pmgr').value='';
+  document.getElementById('c-lmgr').value='';
+}
+
+async function syncBackendData(){
+  try{
+    const [programResponse,inventoryResponse]=await Promise.all([
+      fetch(`${API_BASE}/programs`),
+      fetch(`${API_BASE}/inventory`)
+    ]);
+    if(!programResponse.ok||!inventoryResponse.ok) throw new Error('Backend request failed');
+    const programData=await programResponse.json();
+    const inventoryData=await inventoryResponse.json();
+    if(Array.isArray(programData.items)&&programData.items.length){
+      programs=programData.items.map((p,index)=>({
+        id:p.id,code:p.code,customer:p.customerName||'Unknown customer',custCode:'',brand:'',thread:'',weave:'',so:'',season:'',active:true,
+        status:p.status,articles:[],colors:[],sizes:[],combos:[],
+        _api:true
+      }));
+      activeProgId=programs[0].id;
+      renderDashboard();
+    }
+    const inventory=Array.isArray(inventoryData)?inventoryData:[];
+    const totalAvailable=inventory.reduce((sum,item)=>sum+Number(item.availableQuantity||0),0);
+    document.querySelectorAll('.kpi-sub').forEach(el=>{if(el.textContent==='Stock committed') el.textContent=`${totalAvailable.toLocaleString()} units available`;});
+    backendConnected=true;
+    showToast('Live backend data connected','success');
+  }catch(error){
+    backendConnected=false;
+    console.info('Backend unavailable; using demo data.',error);
+  }
+}
+
+async function apiFetch(path,options={}){
+  const request={...options,headers:{'Content-Type':'application/json',...(options.headers||{})}};
+  if(request.body&&typeof request.body!=='string') request.body=JSON.stringify(request.body);
+  const response=await fetch(`${API_BASE}${path}`,request);
+  if(!response.ok){
+    let message=`API request failed (${response.status})`;
+    try{const problem=await response.json();message=problem.message||message;}catch{}
+    throw new Error(message);
+  }
+  return response.status===204?null:response.json();
+}
+
+async function loadNotifications(){
+  try{
+    const notifications=await apiFetch('/notifications',{headers:{'X-User-Id':'1','X-Roles':'MANAGER'}});
+    if(!notifications.length){showToast('No new notifications','info');return;}
+    showToast(`${notifications.length} role-based notification${notifications.length===1?'':'s'} available`,'info');
+  }catch(error){showToast('Notifications unavailable','error');}
+}
+
+function createProgramInBackend(program){
+  return fetch(`${API_BASE}/programs`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({code:program.code,name:program.code,customerName:program.customer,brand:program.brand||null,organizationId:1,customerId:1})
+  }).then(response=>{if(!response.ok) throw new Error('Program API rejected the request');return response.json();});
+}
+
+function onCustomerChange(){
+  const val=document.getElementById('c-customer').value;
+  const [,code]=val.split('|');
+  const codeEl=document.getElementById('c-code');
+  codeEl.value=code||'';
+  const tok=document.getElementById('tok-code');
+  tok.textContent=code||'Customer code';
+  tok.classList.toggle('filled',!!code);
+  buildProgName();
+}
+
+function buildProgName(){
+  const cust=document.getElementById('c-customer').value.split('|');
+  const code=cust[1]||'';
+  const brand=document.getElementById('c-brand').value;
+  const thread=document.getElementById('c-thread').value;
+  const weave=document.getElementById('c-weave').value;
+  const parts=[code,brand,thread,weave].filter(Boolean);
+  document.getElementById('c-progname').value=parts.join(' ');
+  const setTok=(id,val)=>{
+    const t=document.getElementById(id);
+    t.textContent=val||t.textContent.split('\n')[0];
+    t.classList.toggle('filled',!!val);
+  };
+  setTok('tok-code',code);setTok('tok-brand',brand);setTok('tok-thread',thread);setTok('tok-weave',weave);
+}
+
+function updateMgrCard(cardId,val,role){
+  const card=document.getElementById(cardId);
+  if(!val){card.style.display='none';return;}
+  const [name,initials]=val.split('|');
+  card.style.display='flex';
+  document.getElementById(cardId.replace('card','av')).textContent=initials||name.substring(0,2).toUpperCase();
+  document.getElementById(cardId.replace('card','name')).textContent=name;
+}
+
+function saveProgram(){
+  const custVal=document.getElementById('c-customer').value;
+  if(!custVal){showToast('Please select a customer','error');return;}
+  const brand=document.getElementById('c-brand').value;
+  const thread=document.getElementById('c-thread').value;
+  const weave=document.getElementById('c-weave').value;
+  if(!brand||!thread||!weave){showToast('Please fill all required fields','error');return;}
+  const [custName,custCode]=custVal.split('|');
+  const code=[custCode,brand,thread,weave].filter(Boolean).join(' ');
+  const existing=programs.find(p=>p.code===code);
+  if(existing){showToast('Program with this name already exists','error');return;}
+  nid++;
+  programs.push({
+    id:nid,code,customer:custName,custCode,brand,thread,weave,
+    so:document.getElementById('c-so').value,
+    season:document.getElementById('c-season').value,
+    active:document.getElementById('c-active-tgl').classList.contains('on'),
+    status:'Active',articles:[],colors:[],sizes:[],combos:[]
+  });
+  const createdProgram=programs[programs.length-1];
+  if(backendConnected){
+    createProgramInBackend(createdProgram).catch(error=>showToast(error.message,'error'));
+  }
+  showToast(`Program "${code}" created!`,'success');
+  setTimeout(()=>goScreen('programs',document.querySelectorAll('.nav')[1],'Programs'),800);
+}
+
+/* ═══════════════════════════════════════════════════
+   PROGRAM DETAIL (BOM WORKSPACE)
+═══════════════════════════════════════════════════ */
+function initDetail(){
+  const sel=document.getElementById('det-prog-sel');
+  sel.innerHTML=programs.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
+  sel.value=activeProgId;
+  loadProgramDetail(activeProgId);
+}
+
+function loadProgramDetail(id){
+  activeProgId=+id;
+  const p=programs.find(x=>x.id===activeProgId);
+  if(!p) return;
+  selA=null;selC=null;selS=null;
+  renderArts(p);renderCols(p);renderSizs(p);renderMatrix(p);renderQty(p);
+}
+
+function allowedColors(p){
+  if(!p.articles.length) return [];
+  const arts=new Set(p.articles.map(a=>a.name));
+  return [...new Set(LOOKUP_DATA.filter(r=>arts.has(r.article)).map(r=>r.color))].sort();
+}
+function allowedSizes(p){
+  if(!p.articles.length) return [];
+  const arts=new Set(p.articles.map(a=>a.name));
+  return [...new Set(LOOKUP_DATA.filter(r=>arts.has(r.article)).map(r=>r.size))].sort();
+}
+
+function renderArts(p){
+  const tb=document.getElementById('art-tbody');
+  if(!p.articles.length){tb.innerHTML='<tr><td colspan="2" class="empty-st">No articles — click Add</td></tr>';document.getElementById('art-count').textContent=0;return;}
+  tb.innerHTML=p.articles.map(a=>`
+    <tr class="${selA===a.id?'sel':''}" onclick="selA=${a.id};renderArts(programs.find(x=>x.id===${activeProgId}))">
+      <td class="cn">${a.name}</td>
+      <td class="ci">${a.instructions||'<em style="color:var(--mu)">Add instructions…</em>'}</td>
+    </tr>`).join('');
+  document.getElementById('art-count').textContent=p.articles.length;
+}
+function renderCols(p){
+  const tb=document.getElementById('col-tbody');
+  if(!p.colors.length){tb.innerHTML='<tr><td class="empty-st">No colors</td></tr>';document.getElementById('col-count').textContent=0;return;}
+  tb.innerHTML=p.colors.map(c=>`
+    <tr class="${selC===c.id?'sel':''}" onclick="selC=${c.id};renderCols(programs.find(x=>x.id===${activeProgId}))">
+      <td class="cp"><span class="cdot" style="background:${COLOR_MAP[c.name]||'#cbd5e1'};border:1px solid #d1d5db;"></span>${c.name}</td>
+    </tr>`).join('');
+  document.getElementById('col-count').textContent=p.colors.length;
+}
+function renderSizs(p){
+  const tb=document.getElementById('siz-tbody');
+  if(!p.sizes.length){tb.innerHTML='<tr><td class="empty-st">No sizes</td></tr>';document.getElementById('siz-count').textContent=0;return;}
+  tb.innerHTML=p.sizes.map(s=>`
+    <tr class="${selS===s.id?'sel':''}" onclick="selS=${s.id};renderSizs(programs.find(x=>x.id===${activeProgId}))">
+      <td class="sz"><span class="sbadge">${s.name}</span></td>
+    </tr>`).join('');
+  document.getElementById('siz-count').textContent=p.sizes.length;
+}
+function renderMatrix(p){
+  const el=document.getElementById('mx-body');
+  if(!p.combos.length){el.innerHTML='<div class="empty-st">Click "Create Combination" to generate</div>';document.getElementById('mx-count').textContent=0;return;}
+  el.innerHTML=p.combos.map(c=>`
+    <div class="mx-row">
+      <span class="mx-art">${c.article}</span>
+      <span class="mx-cfg">${p.thread} ${p.weave}</span>
+      <span class="mx-siz">${c.size}</span>
+      <span class="mx-col">${c.color}</span>
+    </div>`).join('');
+  document.getElementById('mx-count').textContent=p.combos.length;
+}
+function renderQty(p){
+  const tb=document.getElementById('qty-tbody');
+  if(!p.combos.length){tb.innerHTML='<tr><td colspan="3" class="empty-st">Generate combinations first</td></tr>';document.getElementById('total-so-qty').textContent=0;return;}
+  tb.innerHTML=p.combos.map(c=>`
+    <tr>
+      <td style="padding:8px 14px;font-size:12px;color:var(--p);font-weight:600;">${c.article.replace(/ /g,'-')}.${c.color}.${c.size}</td>
+      <td class="center"><input type="number" value="${c.qty}" min="0" style="width:80px;text-align:right;height:28px;border:1px solid var(--bd);border-radius:5px;padding:0 7px;font-size:12px;outline:none;" oninput="updateQty(${c.id},+this.value)" onfocus="this.style.borderColor='var(--ac)'" onblur="this.style.borderColor='var(--bd)'"></td>
+      <td class="center"><input type="number" value="${c.price||0}" min="0" step="0.01" style="width:80px;text-align:right;height:28px;border:1px solid var(--bd);border-radius:5px;padding:0 7px;font-size:12px;outline:none;" onfocus="this.style.borderColor='var(--ac)'" onblur="this.style.borderColor='var(--bd)'"></td>
+    </tr>`).join('');
+  const total=p.combos.reduce((s,c)=>s+c.qty,0);
+  document.getElementById('total-so-qty').textContent=total.toLocaleString();
+}
+function updateQty(comboId,val){
+  const p=programs.find(x=>x.id===activeProgId);
+  const c=p.combos.find(x=>x.id===comboId);
+  if(c){c.qty=val;}
+  const total=p.combos.reduce((s,c)=>s+c.qty,0);
+  document.getElementById('total-so-qty').textContent=total.toLocaleString();
+}
+
+function generateMatrix(){
+  const p=programs.find(x=>x.id===activeProgId);
+  if(!p.articles.length){showToast('Add at least one article first','error');return;}
+  if(!p.colors.length){showToast('Add at least one color first','error');return;}
+  if(!p.sizes.length){showToast('Add at least one size first','error');return;}
+  p.combos=[];
+  let n=0;
+  p.articles.forEach(a=>p.colors.forEach(c=>p.sizes.forEach(s=>{
+    p.combos.push({id:++n,article:a.name,color:c.name,size:s.name,qty:0,price:0});
+  })));
+  renderMatrix(p);renderQty(p);
+  showToast(`${p.combos.length} combinations generated!`,'success');
+}
+
+function deleteSelected(type){
+  const p=programs.find(x=>x.id===activeProgId);
+  if(type==='art'&&selA){
+    p.articles=p.articles.filter(a=>a.id!==selA);selA=null;
+    const validC=new Set(allowedColors(p));const validS=new Set(allowedSizes(p));
+    p.colors=p.colors.filter(c=>validC.has(c.name));p.sizes=p.sizes.filter(s=>validS.has(s.name));
+    renderArts(p);renderCols(p);renderSizs(p);p.combos=[];renderMatrix(p);renderQty(p);
+  } else if(type==='col'&&selC){
+    p.colors=p.colors.filter(c=>c.id!==selC);selC=null;
+    renderCols(p);p.combos=[];renderMatrix(p);renderQty(p);
+  } else if(type==='siz'&&selS){
+    p.sizes=p.sizes.filter(s=>s.id!==selS);selS=null;
+    renderSizs(p);p.combos=[];renderMatrix(p);renderQty(p);
+  }
+}
+
+function saveDetailChanges(){showToast('Changes saved!','success');}
+
+/* ═══════════════════════════════════════════════════
+   PICKER MODAL
+═══════════════════════════════════════════════════ */
+function openPicker(mode){
+  pickerMode=mode;pickerSelections=[];
+  const p=programs.find(x=>x.id===activeProgId);
+  let title,sub,items;
+  if(mode==='article'){
+    title='Select Article Name';sub='Choose from master list (multi-select)';
+    const existing=new Set(p.articles.map(a=>a.name));
+    items=LOOKUP_ARTICLES.filter(a=>!existing.has(a));
+    if(!items.length){showToast('All available articles already added','info');return;}
+  } else if(mode==='color'){
+    if(!p.articles.length){showToast('Add at least one article first','error');return;}
+    title='Select Color Code';sub='Colors available for selected articles';
+    const existing=new Set(p.colors.map(c=>c.name));
+    items=allowedColors(p).filter(c=>!existing.has(c));
+    if(!items.length){showToast('All available colors already added','info');return;}
+  } else if(mode==='size'){
+    if(!p.articles.length){showToast('Add at least one article first','error');return;}
+    title='Select Size Code';sub='Sizes available for selected articles';
+    const existing=new Set(p.sizes.map(s=>s.name));
+    items=allowedSizes(p).filter(s=>!existing.has(s));
+    if(!items.length){showToast('All available sizes already added','info');return;}
+  }
+  document.getElementById('picker-title').textContent=title;
+  document.getElementById('picker-sub').textContent=sub;
+  document.getElementById('picker-search').value='';
+  renderPickerList(items);
+  document.getElementById('picker-overlay').classList.add('open');
+  document.getElementById('picker-search').focus();
+}
+
+function renderPickerList(items){
+  document.getElementById('picker-list').innerHTML=items.map(item=>`
+    <div class="picker-item ${pickerSelections.includes(item)?'sel':''}" onclick="togglePickerItem('${item}',this)">
+      <input type="checkbox" ${pickerSelections.includes(item)?'checked':''} style="accent-color:var(--p);cursor:pointer;">
+      ${item}
+    </div>`).join('')||'<div style="text-align:center;padding:24px;color:var(--mu);font-style:italic;">No items available</div>';
+}
+
+let pickerAllItems=[];
+function openPicker_orig(mode){openPicker(mode);}
+
+function filterPicker(){
+  const q=document.getElementById('picker-search').value.toLowerCase();
+  const p=programs.find(x=>x.id===activeProgId);
+  let items;
+  if(pickerMode==='article') items=LOOKUP_ARTICLES.filter(a=>!p.articles.find(x=>x.name===a));
+  else if(pickerMode==='color') items=allowedColors(p).filter(c=>!p.colors.find(x=>x.name===c));
+  else items=allowedSizes(p).filter(s=>!p.sizes.find(x=>x.name===s));
+  renderPickerList(items.filter(i=>i.toLowerCase().includes(q)));
+}
+
+function togglePickerItem(val,el){
+  const idx=pickerSelections.indexOf(val);
+  if(idx>=0) pickerSelections.splice(idx,1); else pickerSelections.push(val);
+  el.classList.toggle('sel',pickerSelections.includes(val));
+  el.querySelector('input').checked=pickerSelections.includes(val);
+}
+
+function confirmPicker(){
+  if(!pickerSelections.length){showToast('Select at least one item','error');return;}
+  const p=programs.find(x=>x.id===activeProgId);
+  pickerSelections.forEach(v=>{
+    if(pickerMode==='article') p.articles.push({id:++nid,name:v,instructions:''});
+    else if(pickerMode==='color') p.colors.push({id:++nid,name:v});
+    else p.sizes.push({id:++nid,name:v});
+  });
+  if(pickerMode==='article'){
+    const validC=new Set(allowedColors(p));const validS=new Set(allowedSizes(p));
+    p.colors=p.colors.filter(c=>validC.has(c.name));p.sizes=p.sizes.filter(s=>validS.has(s.name));
+  }
+  if(pickerMode==='article') renderArts(p);
+  else if(pickerMode==='color') renderCols(p);
+  else renderSizs(p);
+  p.combos=[];renderMatrix(p);renderQty(p);
+  closePicker();
+  showToast(`${pickerSelections.length} ${pickerMode}(s) added`,'success');
+}
+
+function closePicker(){document.getElementById('picker-overlay').classList.remove('open');}
+
+/* ═══════════════════════════════════════════════════
+   ACCESSORIES
+═══════════════════════════════════════════════════ */
+function onAccTypeChange(){
+  const t=document.getElementById('acc-type').value;
+  document.querySelectorAll('.acc-type-fields').forEach(el=>el.classList.remove('visible'));
+  if(t) document.getElementById('acc-'+t)&&document.getElementById('acc-'+t).classList.add('visible');
+  updateAccCode();
+}
+
+function updateAccCode(){
+  const type=document.getElementById('acc-type').value;
+  if(!type){document.getElementById('acc-item-code').value='';return;}
+  const seg2El=document.querySelector('#acc-'+type+' .acc-seg2');
+  const seg3El=document.querySelector('#acc-'+type+' .acc-seg3');
+  const seg2=(seg2El?seg2El.value:'').toUpperCase().replace(/\s+/g,'');
+  const seg3=(seg3El?seg3El.value:'').toUpperCase().replace(/\s+/g,'');
+  const code=type+(seg2?'.'+seg2:'')+(seg3?'.'+seg3:'');
+  document.getElementById('acc-item-code').value=code;
+}
+
+function clearAccForm(){
+  document.getElementById('acc-type').value='';
+  document.querySelectorAll('.acc-type-fields').forEach(el=>el.classList.remove('visible'));
+  document.getElementById('acc-item-code').value='';
+  document.querySelectorAll('.acc-type-fields input,.acc-type-fields select').forEach(el=>{el.value=typeof el.value==='number'?0:'';});
+  showToast('Form cleared','info');
+}
+
+function saveAccessory(){
+  const type=document.getElementById('acc-type').value;
+  if(!type){showToast('Select accessory type','error');return;}
+  const code=document.getElementById('acc-item-code').value;
+  if(!code||code===type){showToast('Fill in the specification fields','error');return;}
+  if(accessories.find(a=>a.code===code)){showToast('Item code already exists','error');return;}
+  const seg2El=document.querySelector('#acc-'+type+' .acc-seg2');
+  const supEl=document.querySelector('#acc-'+type+' [id*=sup],#acc-'+type+' select:last-of-type');
+  const typeMap={ZIP:'Zipper',BTN:'Button',LAB:'Label',TAG:'Hang Tag',PBG:'Poly Bag',CTN:'Carton',INS:'Insert Card',PIP:'Piping',LAC:'Lace',ELS:'Elastic',DRS:'Drawstring',HAN:'Hanger'};
+  accessories.push({id:++nid,type,code,desc:`${typeMap[type]||type} — ${code}`,supplier:supEl?supEl.value:'Local Supplier',uom:type==='PIP'||type==='LAC'||type==='ELS'||type==='DRS'?'MTR':'PCS'});
+  renderAccTable();clearAccForm();
+  showToast(`Accessory "${code}" saved!`,'success');
+}
+
+function renderAccTable(){
+  const filter=document.getElementById('acc-filter-type').value;
+  const rows=filter?accessories.filter(a=>a.type===filter):accessories;
+  const typeMap={ZIP:'Zipper',BTN:'Button',LAB:'Label',TAG:'Hang Tag',PBG:'Poly Bag',CTN:'Carton',INS:'Insert',PIP:'Piping',LAC:'Lace',ELS:'Elastic',DRS:'Drawstring',HAN:'Hanger'};
+  const colors={ZIP:'#0d9488',BTN:'#6366f1',LAB:'#f59e0b',PBG:'#10b981',CTN:'#8b5cf6',TAG:'#f43f5e',INS:'#0ea5e9',PIP:'#d97706',LAC:'#059669',ELS:'#7c3aed',DRS:'#dc2626',HAN:'#64748b'};
+  document.getElementById('acc-saved-count').textContent=accessories.length;
+  document.getElementById('acc-saved-tbody').innerHTML=rows.map(a=>`
+    <tr>
+      <td><span style="background:${colors[a.type]||'#64748b'}20;color:${colors[a.type]||'#64748b'};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;">${typeMap[a.type]||a.type}</span></td>
+      <td><span style="color:var(--p);font-weight:700;font-size:12px;">${a.code}</span></td>
+      <td style="font-size:12px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${a.desc}">${a.desc}</td>
+      <td style="font-size:12px;">${a.supplier}</td>
+      <td class="center" style="font-size:12px;">${a.uom}</td>
+      <td class="center"><button class="del-btn" onclick="deleteAcc(${a.id});event.stopPropagation()"><i class="ti ti-trash"></i></button></td>
+    </tr>`).join('')||'<tr><td colspan="6" class="empty-st">No accessories yet — add one above</td></tr>';
+}
+
+function deleteAcc(id){
+  if(!confirm('Delete this accessory?')) return;
+  accessories=accessories.filter(a=>a.id!==id);renderAccTable();showToast('Deleted','info');
+}
+
+/* ═══════════════════════════════════════════════════
+   BOM SCREEN
+═══════════════════════════════════════════════════ */
+function initBOM(){
+  const sel=document.getElementById('bom-prog-sel');
+  sel.innerHTML='<option value="">— Select program —</option>'+programs.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
+  sel.value=activeProgId;
+  renderBOMFab();renderBOMAccTable();renderBOMList();
+  onBOMProgChange();
+}
+
+function onBOMProgChange(){
+  const pid=+document.getElementById('bom-prog-sel').value;
+  if(!pid) return;
+  activeProgId=pid;
+  const p=programs.find(x=>x.id===pid);
+  if(!p) return;
+  const artSel=document.getElementById('bom-art-sel');
+  artSel.innerHTML='<option value="">— Program Level —</option>'+p.articles.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+}
+
+function onBOMVersionChange(){
+  const ver=document.getElementById('bom-ver-sel').value;
+  const statusMap={'v1':'Approved','v2':'Approved','new':'Draft'};
+  const status=statusMap[ver]||'Draft';
+  const pill=document.getElementById('bom-status-pill');
+  const pillClass=status==='Approved'?'pill-app':status==='Submitted'?'pill-sub':'pill-draft';
+  pill.className=`pill ${pillClass}`;pill.innerHTML=`<span class="pill-dot"></span>${status}`;
+  document.getElementById('bom-appr-status').textContent=status;
+}
+
+function switchBOMTab(tab,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('bom-fabric-pane').classList.toggle('hidden',tab!=='fabric');
+  document.getElementById('bom-acc-pane').classList.toggle('hidden',tab!=='acc');
+}
+
+function renderBOMFab(){
+  const q=(document.getElementById('bom-fab-search')||{value:''}).value.toLowerCase();
+  const rows=q?bomFabRows.filter(r=>r.code.toLowerCase().includes(q)||r.desc.toLowerCase().includes(q)):bomFabRows;
+  document.getElementById('bom-fab-count').textContent=`${rows.length} item${rows.length!==1?'s':''}`;
+  document.getElementById('bom-fab-sel-count').textContent=bomFabRows.filter(r=>r.sel).length?`${bomFabRows.filter(r=>r.sel).length} selected`:'';
+  const tb=document.getElementById('bom-fab-tbody');
+  tb.innerHTML=rows.map(r=>`
+    <tr style="${r.sel?'background:#f0fdf4;':''}" onclick="toggleBOMRow('fabric',${r.id})">
+      <td class="center"><input type="checkbox" style="accent-color:var(--p);width:14px;height:14px;cursor:pointer;" ${r.sel?'checked':''} onclick="event.stopPropagation();toggleBOMRow('fabric',${r.id})"></td>
+      <td><span class="bom-code">${r.code}</span></td>
+      <td style="font-size:11.5px;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.desc}">${r.desc}</td>
+      <td class="center"><select class="bom-input fs" style="width:70px;" onchange="r_bom_uom('fab',${r.id},this.value)"><option ${r.uom==='MTR'?'selected':''}>MTR</option><option ${r.uom==='KGS'?'selected':''}>KGS</option><option ${r.uom==='YDS'?'selected':''}>YDS</option></select></td>
+      <td class="center"><input class="bom-input" type="number" value="${r.consumption}" step="0.01" style="width:75px;text-align:right;" onchange="r_bom_cons('fab',${r.id},+this.value)"></td>
+      <td class="center"><input class="bom-input" type="number" value="${r.waste}" step="0.5" style="width:55px;text-align:right;" onchange="r_bom_waste('fab',${r.id},+this.value)"></td>
+      <td class="center"><input type="checkbox" style="accent-color:var(--p);width:14px;height:14px;cursor:pointer;" ${r.active?'checked':''} onclick="r_bom_active('fab',${r.id},this.checked)"></td>
+      <td class="center"><button class="del-btn" onclick="event.stopPropagation();deleteBOMRow('fab',${r.id})"><i class="ti ti-trash"></i></button></td>
+    </tr>`).join('')||'<tr><td colspan="8" class="empty-st">No fabric items — click Add Fabric</td></tr>';
+}
+
+function renderBOMAccTable(){
+  const tb=document.getElementById('bom-acc-tbody');
+  document.getElementById('bom-acc-count').textContent=`${bomAccRows.length} item${bomAccRows.length!==1?'s':''}`;
+  document.getElementById('bom-acc-sel-count').textContent=bomAccRows.filter(r=>r.sel).length?`${bomAccRows.filter(r=>r.sel).length} selected`:'';
+  tb.innerHTML=bomAccRows.map(r=>`
+    <tr style="${r.sel?'background:#f0fdf4;':''}" onclick="toggleBOMRow('acc',${r.id})">
+      <td class="center"><input type="checkbox" style="accent-color:var(--p);width:14px;height:14px;cursor:pointer;" ${r.sel?'checked':''} onclick="event.stopPropagation();toggleBOMRow('acc',${r.id})"></td>
+      <td><span class="bom-code">${r.code}</span></td>
+      <td style="font-size:11.5px;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.desc}">${r.desc}</td>
+      <td class="center"><select class="bom-input fs" style="width:70px;"><option ${r.uom==='PCS'?'selected':''}>PCS</option><option ${r.uom==='MTR'?'selected':''}>MTR</option></select></td>
+      <td class="center"><input class="bom-input" type="number" value="${r.consumption}" step="0.01" style="width:75px;text-align:right;"></td>
+      <td class="center"><input class="bom-input" type="number" value="${r.waste}" step="0.5" style="width:55px;text-align:right;"></td>
+      <td class="center"><input type="checkbox" style="accent-color:var(--p);width:14px;height:14px;cursor:pointer;" ${r.active?'checked':''}></td>
+      <td class="center"><button class="del-btn" onclick="event.stopPropagation();deleteBOMRow('acc',${r.id})"><i class="ti ti-trash"></i></button></td>
+    </tr>`).join('')||'<tr><td colspan="8" class="empty-st">No accessories — click Add Accessory</td></tr>';
+}
+
+function r_bom_uom(type,id,val){const rows=type==='fab'?bomFabRows:bomAccRows;const r=rows.find(x=>x.id===id);if(r)r.uom=val;}
+function r_bom_cons(type,id,val){const rows=type==='fab'?bomFabRows:bomAccRows;const r=rows.find(x=>x.id===id);if(r)r.consumption=val;}
+function r_bom_waste(type,id,val){const rows=type==='fab'?bomFabRows:bomAccRows;const r=rows.find(x=>x.id===id);if(r)r.waste=val;}
+function r_bom_active(type,id,val){const rows=type==='fab'?bomFabRows:bomAccRows;const r=rows.find(x=>x.id===id);if(r)r.active=val;}
+
+function toggleBOMRow(type,id){
+  const rows=type==='fabric'||type==='fab'?bomFabRows:bomAccRows;
+  const r=rows.find(x=>x.id===id);if(r){r.sel=!r.sel;}
+  if(type==='fabric') renderBOMFab(); else renderBOMAccTable();
+}
+function bomToggleAll(type,checked){
+  const rows=type==='fabric'?bomFabRows:bomAccRows;
+  rows.forEach(r=>r.sel=checked);
+  if(type==='fabric') renderBOMFab(); else renderBOMAccTable();
+}
+function deleteBOMRow(type,id){
+  if(type==='fab') bomFabRows=bomFabRows.filter(r=>r.id!==id);
+  else bomAccRows=bomAccRows.filter(r=>r.id!==id);
+  if(type==='fab') renderBOMFab(); else renderBOMAccTable();
+}
+function deleteBOMSelected(type){
+  if(type==='fabric'){bomFabRows=bomFabRows.filter(r=>!r.sel);renderBOMFab();}
+  else{bomAccRows=bomAccRows.filter(r=>!r.sel);renderBOMAccTable();}
+}
+function bomFabSearch(){renderBOMFab();}
+
+function openBOMPicker(type){
+  pickerMode='bom-'+type;pickerSelections=[];
+  const title=type==='fabric'?'Add Fabric Item':'Add Accessory to BOM';
+  const items=type==='fabric'?FAB_ITEMS.map(f=>`${f.code} — ${f.desc}`):accessories.map(a=>`${a.code} — ${a.desc}`);
+  document.getElementById('picker-title').textContent=title;
+  document.getElementById('picker-sub').textContent='Select items to add to BOM';
+  document.getElementById('picker-search').value='';
+  document.getElementById('picker-list').innerHTML=items.map(item=>`
+    <div class="picker-item ${pickerSelections.includes(item)?'sel':''}" onclick="togglePickerItem('${item}',this)">
+      <input type="checkbox" ${pickerSelections.includes(item)?'checked':''} style="accent-color:var(--p);cursor:pointer;">
+      ${item}
+    </div>`).join('');
+  document.getElementById('picker-overlay').classList.add('open');
+}
+
+function renderBOMList(){
+  const tb=document.getElementById('bom-list-tbody');
+  tb.innerHTML=boms.map(b=>`
+    <tr>
+      <td style="font-size:12px;font-weight:600;color:var(--p);">${b.progCode}</td>
+      <td style="font-size:12px;">${b.article}</td>
+      <td style="font-size:12px;">${b.version}</td>
+      <td><span class="pill ${b.status==='Approved'?'pill-app':b.status==='Submitted'?'pill-sub':'pill-draft'}"><span class="pill-dot"></span>${b.status}</span></td>
+      <td style="font-size:12px;">${b.submittedBy}</td>
+      <td style="font-size:12px;">${b.approvedBy||'—'}</td>
+      <td>
+        ${b.status==='Draft'||b.status==='Submitted'?`<button class="btn btn-sm" onclick="loadBOM(${b.id})">Load</button>`:''}
+        ${b.status==='Submitted'?`<button class="btn btn-sm" style="color:#166534;border-color:#a7f3d0;background:#dcfce7;margin-left:4px;" onclick="approveBOMDash(${b.id})"><i class="ti ti-check" style="font-size:11px"></i>Approve</button>`:''}
+      </td>
+    </tr>`).join('')||'<tr><td colspan="7" class="empty-st">No BOMs created yet</td></tr>';
+}
+
+function loadBOM(id){
+  const b=boms.find(x=>x.id===id);
+  if(!b) return;
+  showToast(`BOM "${b.version}" loaded`,'success');
+}
+
+function saveBOM(){showToast('BOM saved!','success');}
+function submitBOM(){
+  const pill=document.getElementById('bom-status-pill');
+  pill.className='pill pill-sub';pill.innerHTML='<span class="pill-dot"></span>Submitted';
+  document.getElementById('bom-appr-status').textContent='Submitted';
+  boms.push({id:++nid,progId:activeProgId,progCode:programs.find(x=>x.id===activeProgId)?.code||'',article:'(Program Level)',version:'New Version',status:'Submitted',submittedBy:'fahad.bhutta',approvedBy:''});
+  renderBOMList();
+  showToast('BOM submitted for approval!','success');
+  document.getElementById('d-bom-pend').textContent=boms.filter(b=>b.status==='Submitted').length;
+}
+
+function approveBOM(btn){
+  btn.closest('tr').querySelector('.pill').className='pill pill-app';
+  btn.closest('tr').querySelector('.pill').innerHTML='<span class="pill-dot"></span>Approved';
+  btn.remove();
+  document.getElementById('d-bom-pend').textContent=Math.max(0,+document.getElementById('d-bom-pend').textContent-1);
+  showToast('BOM approved!','success');
+}
+function approveBOMDash(id){
+  const b=boms.find(x=>x.id===id);if(b){b.status='Approved';b.approvedBy='fahad.bhutta';}
+  renderBOMList();
+  document.getElementById('d-bom-pend').textContent=boms.filter(b=>b.status==='Submitted').length;
+  showToast('BOM approved!','success');
+}
+
+/* ═══════════════════════════════════════════════════
+   PO SCREEN
+═══════════════════════════════════════════════════ */
+function initPO(){
+  const sel=document.getElementById('po-prog-sel');
+  sel.innerHTML='<option value="">— Select program —</option>'+programs.map(p=>`<option value="${p.id}">${p.code}</option>`).join('');
+  sel.value=1;
+  // Set date
+  document.getElementById('po-date').value=new Date().toISOString().split('T')[0];
+  // Fill customer dropdown
+  const cSel=document.getElementById('po-customer-sel');
+  cSel.innerHTML=['Bouchara','IKEA','Abbas & Co','Primark','Walmart'].map(c=>`<option>${c}</option>`).join('');
+  cSel.value='Bouchara';
+  document.getElementById('po-so-num').value='19626';
+  // PO number
+  document.getElementById('po-number').value='PO-2026-000001';
+  // populate vendor options
+  [document.getElementById('sv1'),document.getElementById('sv2'),document.getElementById('sv3')].forEach(sel=>{
+    if(sel) sel.innerHTML='<option value="">— Select vendor —</option>'+VENDORS.map(v=>`<option>${v}</option>`).join('');
+  });
+  renderPOAccTable();renderPOFabTable();
+}
+
+function onPOProgChange(){
+  const pid=+document.getElementById('po-prog-sel').value;
+  const p=programs.find(x=>x.id===pid);
+  if(!p) return;
+  document.getElementById('po-customer-sel').value=p.customer;
+  document.getElementById('po-so-num').value=p.so||'';
+}
+
+function switchPOTab(tab,btn){
+  document.querySelectorAll('.tab-bar:last-of-type .tab,.tab-bar .tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('po-fabric-pane').classList.toggle('hidden',tab!=='fabric');
+  document.getElementById('po-acc-pane').classList.toggle('hidden',tab!=='acc');
+}
+
+function renderPOAccTable(){
+  const cat=document.getElementById('poa-cat').value.toLowerCase();
+  const vend=(document.getElementById('poa-vendor').value||'').toLowerCase();
+  const rows=poAccRows.filter(r=>{
+    const mc=!cat||r.type.toLowerCase()===cat||r.code.toLowerCase().includes(cat);
+    const mv=!vend||r.vendor.toLowerCase().includes(vend);
+    return mc&&mv;
+  });
+  document.getElementById('poa-row-count').textContent=`${rows.length} item${rows.length!==1?'s':''}`;
+  const selN=poAccRows.filter(r=>r.sel).length;
+  document.getElementById('poa-sel-count').textContent=selN?`${selN} selected`:'';
+  const total=poAccRows.reduce((s,r)=>s+r.poQty*r.rate,0);
+  document.getElementById('po-acc-total').textContent=`Total: PKR ${total.toLocaleString()}`;
+  document.getElementById('poa-tbody').innerHTML=rows.map((r,i)=>`
+    <tr style="${r.sel?'background:#f0fdf4;':''}">
+      <td class="center" style="font-size:11px;color:var(--mu);">${i+1}</td>
+      <td class="center"><input type="checkbox" style="accent-color:var(--p);width:13px;height:13px;cursor:pointer;" ${r.sel?'checked':''} onchange="poToggleRow('acc',${r.id},this.checked)"></td>
+      <td><span class="po-code">${r.code}</span></td>
+      <td style="font-size:11px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.desc}">${r.desc}</td>
+      <td class="center">${r.uom}</td>
+      <td class="center"><select class="po-input fs" style="width:52px;" onchange="poUpdateField('acc',${r.id},'curr',this.value)">${['PKR','USD','EUR','GBP'].map(c=>`<option${c===r.curr?' selected':''}>${c}</option>`).join('')}</select></td>
+      <td class="center" style="color:var(--mu);">${r.consumption}</td>
+      <td class="center">${r.totalSO}</td>
+      <td class="center"><input class="po-input" type="number" value="${r.freeStock}" style="width:55px;text-align:right;" onchange="poUpdateField('acc',${r.id},'freeStock',+this.value)"></td>
+      <td class="center"><input class="po-input" type="number" value="${r.allocStock}" style="width:55px;text-align:right;" onchange="poUpdateField('acc',${r.id},'allocStock',+this.value)"></td>
+      <td class="center">${r.totalCons}</td>
+      <td class="center"><input class="po-input" type="number" value="${r.poQty}" style="width:62px;text-align:right;font-weight:700;" onchange="poUpdateField('acc',${r.id},'poQty',+this.value)"></td>
+      <td class="center"><input class="po-input" type="number" value="${r.rate}" style="width:58px;text-align:right;" onchange="poUpdateField('acc',${r.id},'rate',+this.value)"></td>
+      <td class="center">${r.moq}</td>
+      <td><select class="po-input fs" style="width:145px;" onchange="poUpdateField('acc',${r.id},'vendor',this.value)">${VENDORS.map(v=>`<option${v===r.vendor?' selected':''}>${v}</option>`).join('')}</select></td>
+      <td class="center"><button class="split-btn" onclick="openSplit(${r.id},'acc')" title="Split to multiple vendors"><i class="ti ti-scissors"></i></button></td>
+    </tr>`).join('')||'<tr><td colspan="16" style="text-align:center;padding:28px;color:var(--mu);font-style:italic;">No items — add rows or adjust filters</td></tr>';
+}
+
+function renderPOFabTable(){
+  const vend=(document.getElementById('pof-vendor').value||'').toLowerCase();
+  const rows=vend?poFabRows.filter(r=>r.vendor.toLowerCase().includes(vend)):poFabRows;
+  document.getElementById('pof-row-count').textContent=`${rows.length} item${rows.length!==1?'s':''}`;
+  const selN=poFabRows.filter(r=>r.sel).length;
+  document.getElementById('pof-sel-count').textContent=selN?`${selN} selected`:'';
+  const total=poFabRows.reduce((s,r)=>s+r.poQty*r.rate,0);
+  document.getElementById('po-fab-total').textContent=`Total: PKR ${total.toLocaleString()}`;
+  document.getElementById('pof-tbody').innerHTML=rows.map((r,i)=>`
+    <tr style="${r.sel?'background:#f0fdf4;':''}">
+      <td class="center" style="font-size:11px;color:var(--mu);">${i+1}</td>
+      <td class="center"><input type="checkbox" style="accent-color:var(--p);width:13px;height:13px;cursor:pointer;" ${r.sel?'checked':''} onchange="poToggleRow('fab',${r.id},this.checked)"></td>
+      <td><span class="po-code">${r.code}</span></td>
+      <td style="font-size:11px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.desc}">${r.desc}</td>
+      <td class="center">${r.uom}</td>
+      <td class="center"><select class="po-input fs" style="width:52px;">${['PKR','USD','EUR','GBP'].map(c=>`<option${c===r.curr?' selected':''}>${c}</option>`).join('')}</select></td>
+      <td class="center" style="color:var(--mu);">${r.consumption}</td>
+      <td class="center">${r.totalSO}</td>
+      <td class="center"><input class="po-input" type="number" value="${r.freeStock}" style="width:55px;text-align:right;"></td>
+      <td class="center"><input class="po-input" type="number" value="${r.allocStock}" style="width:55px;text-align:right;"></td>
+      <td class="center">${r.totalCons}</td>
+      <td class="center"><input class="po-input" type="number" value="${r.poQty}" style="width:62px;text-align:right;font-weight:700;" onchange="poUpdateField('fab',${r.id},'poQty',+this.value)"></td>
+      <td class="center"><input class="po-input" type="number" value="${r.rate}" style="width:58px;text-align:right;" onchange="poUpdateField('fab',${r.id},'rate',+this.value)"></td>
+      <td class="center">${r.moq}</td>
+      <td><select class="po-input fs" style="width:145px;">${VENDORS.map(v=>`<option${v===r.vendor?' selected':''}>${v}</option>`).join('')}</select></td>
+      <td class="center"><button class="split-btn" onclick="openSplit(${r.id},'fab')" title="Split"><i class="ti ti-scissors"></i></button></td>
+    </tr>`).join('')||'<tr><td colspan="16" style="text-align:center;padding:28px;color:var(--mu);font-style:italic;">No fabric items</td></tr>';
+}
+
+function poToggleRow(type,id,checked){
+  const rows=type==='acc'?poAccRows:poFabRows;
+  const r=rows.find(x=>x.id===id);if(r)r.sel=checked;
+  if(type==='acc') renderPOAccTable(); else renderPOFabTable();
+}
+function poToggleAll(type,checked){
+  const rows=type==='acc'?poAccRows:poFabRows;
+  rows.forEach(r=>r.sel=checked);
+  if(type==='acc') renderPOAccTable(); else renderPOFabTable();
+}
+function poUpdateField(type,id,field,val){
+  const rows=type==='acc'?poAccRows:poFabRows;
+  const r=rows.find(x=>x.id===id);if(r)r[field]=val;
+  if(type==='acc') renderPOAccTable(); else renderPOFabTable();
+}
+function addPOAccRow(){
+  poAccRows.push({id:poAccRowId++,type:'PBG',code:'',desc:'',uom:'PCS',curr:'PKR',consumption:0,totalSO:0,freeStock:0,allocStock:0,totalCons:0,poQty:0,rate:0,moq:0,vendor:'',sel:false});
+  renderPOAccTable();
+}
+function addPOFabRow(){
+  poFabRows.push({id:poFabRowId++,type:'FAB',code:'',desc:'',uom:'MTR',curr:'PKR',consumption:0,totalSO:0,freeStock:0,allocStock:0,totalCons:0,poQty:0,rate:0,moq:0,vendor:'',sel:false});
+  renderPOFabTable();
+}
+function deletePOSelected(type){
+  if(type==='acc'){poAccRows=poAccRows.filter(r=>!r.sel);renderPOAccTable();}
+  else{poFabRows=poFabRows.filter(r=>!r.sel);renderPOFabTable();}
+}
+
+function loadFromBOM(){
+  showToast('PO lines loaded from approved BOM!','success');
+}
+
+function savePO(){
+  document.getElementById('po-number').value='PO-2026-'+String(Math.floor(Math.random()*999999)).padStart(6,'0');
+  showToast('PO saved! PO number generated.','success');
+}
+function generatePO(){showToast('PO generated successfully!','success');}
+function submitPO(){
+  const pill=document.getElementById('po-status-pill');
+  pill.className='pill pill-sub';pill.innerHTML='<span class="pill-dot"></span>Submitted';
+  document.getElementById('d-po-pend').textContent=+document.getElementById('d-po-pend').textContent+1;
+  showToast('PO submitted for approval!','success');
+}
+function approvePO(btn){
+  btn.closest('tr').querySelector('.pill').className='pill pill-app';
+  btn.closest('tr').querySelector('.pill').innerHTML='<span class="pill-dot"></span>Approved';
+  btn.remove();
+  document.getElementById('d-po-pend').textContent=Math.max(0,+document.getElementById('d-po-pend').textContent-1);
+  showToast('PO approved!','success');
+}
+
+/* ═══════════════════════════════════════════════════
+   SPLIT VENDOR MODAL
+═══════════════════════════════════════════════════ */
+let splitType='acc';
+function openSplit(lineId,type){
+  splitLineId=lineId;splitType=type;
+  const rows=type==='acc'?poAccRows:poFabRows;
+  const r=rows.find(x=>x.id===lineId);if(!r) return;
+  const reqQty=Math.max(0,r.totalCons-r.freeStock-r.allocStock)||r.poQty||10;
+  document.getElementById('split-item-info').textContent=`${r.code} — Required Qty: ${reqQty}`;
+  ['sq1','sq2','sq3'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('split-total-lbl').textContent='';
+  document.getElementById('split-save-btn').disabled=true;
+  document.getElementById('split-overlay').classList.add('open');
+  // store reqQty
+  document.getElementById('split-overlay').dataset.req=reqQty;
+}
+function validateSplit(){
+  const req=+document.getElementById('split-overlay').dataset.req||0;
+  const q1=+document.getElementById('sq1').value||0;
+  const q2=+document.getElementById('sq2').value||0;
+  const q3=+document.getElementById('sq3').value||0;
+  const total=q1+q2+q3;
+  const lbl=document.getElementById('split-total-lbl');
+  lbl.textContent=`Total: ${total} / Required: ${req}`;
+  lbl.className='split-total'+(total>req?' over':'');
+  document.getElementById('split-save-btn').disabled=total===0||total>req;
+}
+function confirmSplit(){
+  const q1=+document.getElementById('sq1').value||0;
+  const q2=+document.getElementById('sq2').value||0;
+  const q3=+document.getElementById('sq3').value||0;
+  const v1=document.getElementById('sv1').value;
+  const v2=document.getElementById('sv2').value;
+  const req=+document.getElementById('split-overlay').dataset.req||0;
+  if(!v1||!v2){showToast('Select at least 2 vendors','error');return;}
+  if(q1+q2+(+document.getElementById('sq3').value||0)>req){showToast('Total exceeds required quantity!','error');return;}
+  closeSplit();
+  showToast(`Split confirmed — ${v1}:${q1} / ${v2}:${q2}${q3?` / ${document.getElementById('sv3').value}:${q3}`:''}`, 'success');
+}
+function closeSplit(){document.getElementById('split-overlay').classList.remove('open');}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const ico=type==='error'?'<i class="ti ti-alert-circle" style="font-size:14px;color:#fca5a5;"></i>':type==='info'?'<i class="ti ti-info-circle" style="font-size:14px;color:#a7f3d0;"></i>':'<i class="ti ti-circle-check" style="font-size:14px;color:#6ee7b7;"></i>';
+  const bg=type==='error'?'#991b1b':type==='info'?'#1e40af':'var(--p)';
+  t.style.background=bg;
+  t.innerHTML=ico+' '+msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+// Generate initial combos for demo
+programs[0].combos=[
+  {id:1,article:'Bed Sheet Set',color:'White',size:'Queen',qty:250,price:0},
+  {id:2,article:'Bed Sheet Set',color:'White',size:'King',qty:150,price:0},
+  {id:3,article:'Bed Sheet Set',color:'Ivory',size:'Queen',qty:200,price:0},
+  {id:4,article:'Bed Sheet Set',color:'Ivory',size:'King',qty:100,price:0},
+  {id:5,article:'Pillow Case',color:'White',size:'Standard',qty:500,price:0},
+  {id:6,article:'Pillow Case',color:'White',size:'King',qty:300,price:0},
+];
+programs[1].combos=[{id:7,article:'Bath Mat',color:'Grey',size:'20x30',qty:200,price:0}];
+programs[2].combos=[
+  {id:8,article:'Bed Sheet Set',color:'White',size:'Queen',qty:250,price:0},
+  {id:9,article:'Bed Sheet Set',color:'Ivory',size:'Queen',qty:250,price:0},
+];
+
+renderDashboard();
+syncBackendData();
+</script>
+</body>
+</html>
