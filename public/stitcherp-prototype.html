@@ -320,9 +320,13 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
 .notif-menu-hdr{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:10px;}
 .notif-item{padding:10px 0;border-top:1px solid var(--bd);font-size:12px;color:var(--tx);}
 .notif-item small{display:block;color:var(--mu);margin-top:3px;}
-.user-menu{position:fixed;top:60px;right:20px;background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:var(--shm);z-index:900;padding:8px;display:none;}
+.user-menu{position:fixed;top:58px;right:20px;width:190px;background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:0 12px 28px rgba(15,23,42,.14);z-index:900;padding:6px;display:none;}
 .user-menu.open{display:block;}
-.user-menu button{border:0;background:transparent;padding:8px 12px;color:var(--red);cursor:pointer;font-size:12px;}
+.user-menu button{width:100%;border:0;background:transparent;padding:10px 11px;color:var(--tx);cursor:pointer;font-size:12px;text-align:left;display:flex;align-items:center;gap:9px;border-radius:7px;transition:var(--tr);}
+.user-menu button:hover{background:var(--hov);}
+.user-menu button i{width:16px;color:var(--p);font-size:14px;}
+.user-menu button:last-child{color:var(--red);border-top:1px solid var(--bd);border-radius:0 0 7px 7px;margin-top:4px;padding-top:11px;}
+.user-menu button:last-child i{color:var(--red);}
 .auth-overlay{position:fixed;inset:0;background:var(--bg);z-index:1100;display:none;align-items:center;justify-content:center;padding:20px;}
 .auth-overlay.open{display:flex;}
 .auth-card{width:380px;max-width:100%;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--shm);padding:24px;}
@@ -331,6 +335,13 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
 .auth-title{font-size:20px;font-weight:700;margin-bottom:4px;}
 .auth-subtitle{font-size:12px;color:var(--mu);margin-bottom:18px;}
 .auth-error{font-size:11px;color:var(--red);margin-top:8px;display:none;}
+.auth-success{font-size:11px;color:var(--p);margin-top:8px;display:none;word-break:break-word;}
+.auth-link{border:0;background:transparent;color:var(--p);cursor:pointer;font-size:11px;padding:10px 0 0;text-align:left;}
+.auth-link:hover{text-decoration:underline;}
+.password-field{position:relative;}
+.password-field .fi{padding-right:40px;}
+.password-toggle{position:absolute;right:8px;bottom:4px;width:28px;height:28px;border:0;background:transparent;color:var(--mu);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:5px;}
+.password-toggle:hover{background:var(--hov);color:var(--tx);}
 @media (max-width: 760px){
   body{overflow:auto;height:auto;}
   .app{height:auto;min-height:100vh;display:block;}
@@ -393,6 +404,10 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
     <div class="sb-section">
       <div class="sb-lbl">Reports</div>
       <div class="nav" onclick="showToast('Reports module — coming soon','info')"><i class="ti ti-report-analytics"></i>Reports</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-lbl">Administration</div>
+      <div class="nav" onclick="goScreen('users',this,'User Management')"><i class="ti ti-users"></i>User Management</div>
     </div>
     <div class="sb-footer">
       <div class="user-row">
@@ -1285,6 +1300,19 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
         <div class="card" style="margin-top:16px;"><div class="card-hdr"><div class="card-ico" style="background:#dcfce7;color:#166534;"><i class="ti ti-route"></i></div><div><div class="card-title">Fulfilment Controls</div><div class="card-sub">Quantities and financial state stay connected across the cycle</div></div></div><div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;"><div class="pill pill-act"><span class="pill-dot"></span>Reserve available stock</div><div class="pill pill-act"><span class="pill-dot"></span>Deliver only reserved qty</div><div class="pill pill-act"><span class="pill-dot"></span>Invoice delivered qty</div></div></div>
       </div>
 
+      <!-- USER MANAGEMENT -->
+      <div class="screen" id="screen-users">
+        <div class="row page-head">
+          <div><div class="page-title">User Management</div><div class="page-subtitle">Create users, assign roles, and control access to ERP modules.</div></div>
+          <button class="btn btn-p" onclick="openUserForm()"><i class="ti ti-user-plus"></i>New user</button>
+        </div>
+        <div class="dash-grid">
+          <div class="card full"><div class="card-hdr"><div class="card-ico"><i class="ti ti-users"></i></div><div><div class="card-title">Users</div><div class="card-sub">Only administrators can manage accounts and permissions.</div></div></div><div style="padding:0;overflow-x:auto;"><table class="tbl"><thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="users-body"></tbody></table></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-ico" style="background:#fef3c7;color:#92400e;"><i class="ti ti-shield-lock"></i></div><div><div class="card-title">Role access</div><div class="card-sub">Selected role permissions</div></div></div><div style="padding:16px;"><select class="fs" id="role-preview" onchange="renderRolePreview()"></select><div id="role-preview-body" style="margin-top:14px;"></div></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-ico"><i class="ti ti-info-circle"></i></div><div><div class="card-title">Administration rules</div><div class="card-sub">Access is enforced by the API.</div></div></div><div style="padding:16px;font-size:12px;color:var(--mu);line-height:1.8;">Admins create accounts, assign one or more roles, disable access, and trigger password resets. Users only see modules allowed by their permissions.</div></div>
+        </div>
+      </div>
+
     </div><!-- end content -->
   </div>
 </div>
@@ -1358,23 +1386,53 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
 
 <!-- Toast -->
 <div class="auth-overlay" id="auth-overlay">
-  <form class="auth-card" onsubmit="loginDemo(event)">
+  <form class="auth-card" id="login-form" onsubmit="loginDemo(event)">
     <div class="auth-brand"><div class="sb-icon"><i class="ti ti-needle-thread icon-brand"></i></div><div><div class="sb-name" style="color:var(--p)">StitchERP</div><div class="sb-sub" style="color:var(--mu);opacity:1">Production Suite</div></div></div>
     <div class="auth-title">Sign in</div>
     <div class="auth-subtitle">Use the demo account to continue testing.</div>
     <div class="fg"><label class="fl">Username</label><input class="fi" id="demo-username" value="fahad.bhutta" autocomplete="username"></div>
-    <div class="fg" style="margin-top:12px"><label class="fl">Password</label><input class="fi" id="demo-password" type="password" value="Pakistan123!" autocomplete="current-password"></div>
+    <div class="fg password-field" style="margin-top:12px"><label class="fl" for="demo-password">Password</label><input class="fi" id="demo-password" type="password" value="StitchERP-Demo-2026" autocomplete="current-password"><button class="password-toggle" type="button" onclick="togglePasswordVisibility()" aria-label="Show password" title="Show password"><i class="ti ti-eye"></i></button></div>
     <div class="auth-error" id="auth-error">Use the demo credentials shown in the form.</div>
     <button class="btn btn-p full-width" style="margin-top:18px;justify-content:center" type="submit">Sign in</button>
+    <button class="auth-link" type="button" onclick="showForgotPassword()">Forgot password?</button>
+  </form>
+  <form class="auth-card" id="forgot-form" style="display:none" onsubmit="requestPasswordReset(event)">
+    <div class="auth-brand"><div class="sb-icon"><i class="ti ti-lock-question icon-brand"></i></div><div><div class="sb-name" style="color:var(--p)">StitchERP</div><div class="sb-sub" style="color:var(--mu);opacity:1">Account recovery</div></div></div>
+    <div class="auth-title">Forgot password?</div>
+    <div class="auth-subtitle">Enter your username or account email to receive a reset link.</div>
+    <div class="fg"><label class="fl" for="reset-identity">Username or email</label><input class="fi" id="reset-identity" autocomplete="username email" required></div>
+    <div class="auth-error" id="forgot-error"></div>
+    <div class="auth-success" id="forgot-success"></div>
+    <button class="btn btn-p full-width" style="margin-top:18px;justify-content:center" type="submit">Send reset link</button>
+    <button class="auth-link" type="button" onclick="showLoginForm()">Back to sign in</button>
+  </form>
+  <form class="auth-card" id="reset-form" style="display:none" onsubmit="resetPassword(event)">
+    <div class="auth-brand"><div class="sb-icon"><i class="ti ti-key icon-brand"></i></div><div><div class="sb-name" style="color:var(--p)">StitchERP</div><div class="sb-sub" style="color:var(--mu);opacity:1">Set new password</div></div></div>
+    <div class="auth-title">Reset password</div>
+    <div class="auth-subtitle">Use the reset token from the email link.</div>
+    <div class="fg"><label class="fl" for="reset-token">Reset token</label><input class="fi" id="reset-token" required></div>
+    <div class="fg" style="margin-top:12px"><label class="fl" for="new-password">New password</label><input class="fi" id="new-password" type="password" minlength="8" autocomplete="new-password" required></div>
+    <div class="fg" style="margin-top:12px"><label class="fl" for="confirm-new-password">Confirm password</label><input class="fi" id="confirm-new-password" type="password" minlength="8" autocomplete="new-password" required></div>
+    <div class="auth-error" id="reset-error"></div>
+    <button class="btn btn-p full-width" style="margin-top:18px;justify-content:center" type="submit">Update password</button>
+    <button class="auth-link" type="button" onclick="showLoginForm()">Back to sign in</button>
   </form>
 </div>
 <div class="toast" id="toast"></div>
+<div class="overlay" id="user-create-overlay" onclick="if(event.target===this)closeUserForm()">
+  <form class="modal" onsubmit="createManagedUser(event)">
+    <div class="modal-hdr"><div class="modal-title">Create user</div><button class="modal-close" type="button" onclick="closeUserForm()"><i class="ti ti-x"></i></button></div>
+    <div class="modal-body"><div class="form-grid"><div class="fg"><label class="fl" for="user-name">Full name</label><input class="fi" id="user-name" required></div><div class="fg"><label class="fl" for="user-username">Username</label><input class="fi" id="user-username" required></div><div class="fg"><label class="fl" for="user-email">Email</label><input class="fi" id="user-email" type="email" required></div><div class="fg"><label class="fl" for="user-role">Role</label><select class="fs" id="user-role" required></select></div><div class="fg span2"><label class="fl" for="user-password">Temporary password</label><input class="fi" id="user-password" type="password" minlength="8" required></div></div><div class="auth-error" id="user-create-error"></div></div>
+    <div class="modal-footer"><button class="btn" type="button" onclick="closeUserForm()">Cancel</button><button class="btn btn-p" type="submit"><i class="ti ti-user-plus"></i>Create user</button></div>
+  </form>
+</div>
 <div class="notif-menu" id="notif-menu">
   <div class="notif-menu-hdr"><span>Notifications</span><button class="modal-close" onclick="toggleNotifications()"><i class="ti ti-x"></i></button></div>
   <div class="notif-item">BOM awaiting manager approval<small>ABBASCO Abbas Home T200 Sateen</small></div>
   <div class="notif-item">Purchase order ready for review<small>PO-2026-000001</small></div>
 </div>
-<div class="user-menu" id="user-menu"><button onclick="logoutDemo()"><i class="ti ti-logout"></i> Log out</button></div>
+<div class="user-menu" id="user-menu"><button onclick="showChangePassword()"><i class="ti ti-key"></i><span>Change password</span></button><button onclick="logoutDemo()"><i class="ti ti-logout"></i><span>Log out</span></button></div>
+<div class="overlay" id="change-password-overlay" onclick="if(event.target===this)closeChangePassword()"><form class="modal" onsubmit="changePassword(event)"><div class="modal-hdr"><div class="modal-title">Change password</div><button class="modal-close" type="button" onclick="closeChangePassword()"><i class="ti ti-x"></i></button></div><div class="modal-body"><div class="fg"><label class="fl" for="current-password">Current password</label><input class="fi" id="current-password" type="password" required></div><div class="fg" style="margin-top:12px"><label class="fl" for="permanent-password">New password</label><input class="fi" id="permanent-password" type="password" minlength="8" required></div><div class="fg" style="margin-top:12px"><label class="fl" for="confirm-permanent-password">Confirm password</label><input class="fi" id="confirm-permanent-password" type="password" minlength="8" required></div><div class="auth-error" id="change-password-error"></div></div><div class="modal-footer"><button class="btn" type="button" onclick="closeChangePassword()">Cancel</button><button class="btn btn-p" type="submit">Save password</button></div></form></div>
 
 <script>
 /* ═══════════════════════════════════════════════════
@@ -1475,6 +1533,22 @@ let p2pDocs=[{id:1,po:'PO-2026-000001',vendor:'Stitch Accessories Supply',receip
 let o2cDocs=[{id:1,order:'SO-2026-000001',customer:'Abbas & Co',program:'ABBASCO Abbas Home T200 Sateen',reservation:'Not reserved',delivery:'Not ready',invoice:'Not created',payment:'Not due',stage:0,backendId:null,lineId:null,invoiceId:null}];
 const API_BASE='http://localhost:5251/api/v1';
 let backendConnected=false;
+const roleAccess={
+  SUPER_ADMIN:{label:'Super Admin',pages:['All pages'],actions:['All actions','Manage users, roles, permissions, and settings']},
+  ADMIN:{label:'Admin',pages:['Dashboard','Programs','BOM Workspace','Purchase Orders','Inventory','Reports','User Management'],actions:['Create/edit users','Assign roles','Disable users','Reset passwords','View audit and reports']},
+  MANAGER:{label:'Manager',pages:['Dashboard','Programs','BOM Workspace','Purchase Orders','Reports'],actions:['Review approvals','Submit programs and BOMs','View reports']},
+  PRODUCTION_MANAGER:{label:'Production Manager',pages:['Dashboard','Programs','BOM Workspace','Inventory'],actions:['Create/edit BOMs','Manage production','Receive inventory']},
+  PROCUREMENT_MANAGER:{label:'Procurement Manager',pages:['Dashboard','Purchase Orders','Inventory','Reports'],actions:['Create/approve POs','Receive goods','Manage vendors']},
+  PROCUREMENT_USER:{label:'Procurement User',pages:['Dashboard','Purchase Orders'],actions:['Create and submit POs']},
+  SALES_MANAGER:{label:'Sales Manager',pages:['Dashboard','Sales Orders','Reports'],actions:['Create and approve sales orders','View deliveries and invoices']},
+  SALES_USER:{label:'Sales User',pages:['Dashboard','Sales Orders'],actions:['Create and edit sales orders']},
+  FINANCE_MANAGER:{label:'Finance Manager',pages:['Dashboard','Invoices','Payments','Reports'],actions:['Approve invoices and payments','Export reports']},
+  FINANCE_USER:{label:'Finance User',pages:['Dashboard','Invoices','Payments'],actions:['Create invoices and payments']},
+  INVENTORY_MANAGER:{label:'Inventory Manager',pages:['Dashboard','Inventory','Warehouses'],actions:['Adjust, allocate, reserve, and transfer stock']},
+  INVENTORY_USER:{label:'Inventory User',pages:['Dashboard','Inventory'],actions:['Receive and view stock']},
+  VIEWER:{label:'Viewer',pages:['Dashboard','Reports'],actions:['Read-only access']}
+};
+let managedUsers=[{name:'Fahad Bhutta',username:'fahad.bhutta',email:'fahad.bhutta@stitcherp.local',role:'MANAGER',status:'Active'}];
 
 /* ═══════════════════════════════════════════════════
    NAVIGATION
@@ -1496,6 +1570,55 @@ function goScreen(id,navEl,label){
   else if(id==='create') initCreate();
   else if(id==='p2p') renderP2P();
   else if(id==='o2c') renderO2C();
+  else if(id==='users') { renderUsers(); renderRolePreview(); }
+}
+
+async function renderUsers(){
+  try{
+    const users=await apiFetch('/admin/users',{headers:{'X-User-Id':'1','X-Permissions':'*','X-Roles':'ADMIN'}});
+    managedUsers=users.map(user=>({name:user.displayName,username:user.username,email:user.email,role:user.roles[0]||'VIEWER',status:user.isActive?'Active':'Disabled',id:user.id}));
+  }catch(error){console.info('Admin user API unavailable; using local demo users.',error);}
+  const body=document.getElementById('users-body');
+  body.innerHTML=managedUsers.map((user,index)=>`<tr><td>${user.name}</td><td>${user.username}</td><td>${user.email}</td><td><span class="pill pill-act">${roleAccess[user.role]?.label||user.role}</span></td><td>${user.status}</td><td><button class="btn btn-sm" onclick="resetManagedPassword(${index})"><i class="ti ti-key"></i>Reset</button> <button class="btn btn-sm btn-d" onclick="toggleManagedUser(${index})">${user.status==='Active'?'Disable':'Enable'}</button></td></tr>`).join('');
+}
+
+function renderRolePreview(){
+  const select=document.getElementById('role-preview');
+  if(!select.options.length) select.innerHTML=Object.entries(roleAccess).map(([code,role])=>`<option value="${code}">${role.label}</option>`).join('');
+  const role=roleAccess[select.value||'ADMIN'];
+  document.getElementById('role-preview-body').innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;">Pages</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px;">${role.pages.map(page=>`<span class="pill pill-act">${page}</span>`).join('')}</div><div style="font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.05em;">Actions</div><ul style="padding-left:18px;margin:8px 0;color:var(--tx);font-size:12px;line-height:1.8;">${role.actions.map(action=>`<li>${action}</li>`).join('')}</ul>`;
+}
+
+function openUserForm(){
+  const select=document.getElementById('user-role');
+  select.innerHTML=Object.entries(roleAccess).map(([code,role])=>`<option value="${code}">${role.label}</option>`).join('');
+  document.getElementById('user-create-error').style.display='none';
+  document.getElementById('user-create-overlay').classList.add('open');
+}
+
+function closeUserForm(){document.getElementById('user-create-overlay').classList.remove('open');}
+
+async function createManagedUser(event){
+  event.preventDefault();
+  const error=document.getElementById('user-create-error');
+  error.style.display='none';
+  const role=document.getElementById('user-role').value;
+  try{
+    const user=await apiFetch('/admin/users',{method:'POST',headers:{'X-User-Id':'1','X-Permissions':'*','X-Roles':'ADMIN'},body:{username:document.getElementById('user-username').value.trim(),email:document.getElementById('user-email').value.trim(),displayName:document.getElementById('user-name').value.trim(),organizationId:1,temporaryPassword:document.getElementById('user-password').value,roles:[role]}});
+    managedUsers.push({name:user.displayName,username:user.username,email:user.email,role:user.roles[0]||role,status:user.isActive?'Active':'Disabled'});
+    closeUserForm(); renderUsers(); showToast('User created successfully','success');
+  }catch(requestError){error.textContent=requestError.message||'Unable to create user.';error.style.display='block';}
+}
+
+async function toggleManagedUser(index){
+  try{await apiFetch(`/admin/users/${managedUsers[index].id}/status`,{method:'PUT',headers:{'X-User-Id':'1','X-Permissions':'*','X-Roles':'ADMIN'},body:{isActive:managedUsers[index].status!=='Active'}});await renderUsers();showToast('User status updated','success');}
+  catch(error){showToast(error.message,'error');}
+}
+async function resetManagedPassword(index){
+  const password=prompt('Enter temporary password (minimum 8 characters)');
+  if(!password)return;
+  try{await apiFetch(`/admin/users/${managedUsers[index].id}/reset-password`,{method:'POST',headers:{'X-User-Id':'1','X-Permissions':'*','X-Roles':'ADMIN'},body:{password}});showToast('Temporary password set','success');}
+  catch(error){showToast(error.message,'error');}
 }
 
 function openWorkflows(focus){
@@ -1742,23 +1865,104 @@ function toggleUserMenu(){
   document.getElementById('user-menu').classList.toggle('open');
 }
 
+function showChangePassword(){document.getElementById('user-menu').classList.remove('open');document.getElementById('change-password-overlay').classList.add('open');}
+function closeChangePassword(){document.getElementById('change-password-overlay').classList.remove('open');}
+async function changePassword(event){
+  event.preventDefault();
+  const error=document.getElementById('change-password-error'); error.style.display='none';
+  const newPassword=document.getElementById('permanent-password').value;
+  if(newPassword!==document.getElementById('confirm-permanent-password').value){error.textContent='Passwords do not match.';error.style.display='block';return;}
+  try{
+    await apiFetch('/auth/change-password',{method:'POST',body:{userId:1,currentPassword:document.getElementById('current-password').value,newPassword}});
+    closeChangePassword(); event.target.reset(); showToast('Password changed successfully','success');
+  }catch(requestError){error.textContent=requestError.message||'Unable to change password.';error.style.display='block';}
+}
+
 function logoutDemo(){
   document.getElementById('user-menu').classList.remove('open');
   document.getElementById('auth-overlay').classList.add('open');
 }
 
-function loginDemo(event){
+async function loginDemo(event){
   event.preventDefault();
   const username=document.getElementById('demo-username').value.trim();
   const password=document.getElementById('demo-password').value;
   const error=document.getElementById('auth-error');
-  if(username!=='fahad.bhutta'||password!=='Pakistan123!'){
-    error.style.display='block';
-    return;
-  }
   error.style.display='none';
-  document.getElementById('auth-overlay').classList.remove('open');
-  showToast('Signed in successfully','success');
+  try{
+    const session=await apiFetch('/auth/login',{method:'POST',body:{username,password}});
+    localStorage.setItem('stitcherp.session',JSON.stringify(session));
+    document.querySelector('.u-name').textContent=session.displayName;
+    document.querySelector('.u-role').textContent=session.roles.join(', ');
+    document.querySelector('.u-av').textContent=session.displayName.split(' ').map(name=>name[0]).join('').slice(0,2);
+    document.querySelector('.av').textContent=session.displayName.split(' ').map(name=>name[0]).join('').slice(0,2);
+    document.getElementById('auth-overlay').classList.remove('open');
+    showToast('Signed in successfully','success');
+  }catch(requestError){
+    error.textContent=requestError.message||'Invalid username or password.';
+    error.style.display='block';
+  }
+}
+
+function showForgotPassword(){
+  document.getElementById('login-form').style.display='none';
+  document.getElementById('forgot-form').style.display='block';
+  document.getElementById('reset-form').style.display='none';
+}
+
+function showLoginForm(){
+  document.getElementById('login-form').style.display='block';
+  document.getElementById('forgot-form').style.display='none';
+  document.getElementById('reset-form').style.display='none';
+}
+
+async function requestPasswordReset(event){
+  event.preventDefault();
+  const error=document.getElementById('forgot-error');
+  const success=document.getElementById('forgot-success');
+  error.style.display='none';
+  success.style.display='none';
+  try{
+    const response=await apiFetch('/auth/forgot-password',{method:'POST',body:{usernameOrEmail:document.getElementById('reset-identity').value.trim()}});
+    success.textContent=response.developmentResetToken ? `${response.message} Development token: ${response.developmentResetToken}` : response.message;
+    success.style.display='block';
+    if(response.developmentResetToken){
+      document.getElementById('reset-token').value=response.developmentResetToken;
+      document.getElementById('forgot-form').style.display='none';
+      document.getElementById('reset-form').style.display='block';
+    }
+  }catch(requestError){
+    error.textContent=requestError.message||'Unable to request a reset link.';
+    error.style.display='block';
+  }
+}
+
+async function resetPassword(event){
+  event.preventDefault();
+  const error=document.getElementById('reset-error');
+  error.style.display='none';
+  const newPassword=document.getElementById('new-password').value;
+  if(newPassword!==document.getElementById('confirm-new-password').value){error.textContent='Passwords do not match.';error.style.display='block';return;}
+  try{
+    await apiFetch('/auth/reset-password',{method:'POST',body:{token:document.getElementById('reset-token').value.trim(),newPassword}});
+    showLoginForm();
+    document.getElementById('demo-password').value='';
+    showToast('Password updated successfully','success');
+  }catch(requestError){
+    error.textContent=requestError.message||'Unable to reset password.';
+    error.style.display='block';
+  }
+}
+
+function togglePasswordVisibility(){
+  const password=document.getElementById('demo-password');
+  const toggle=document.querySelector('.password-toggle');
+  const icon=toggle.querySelector('i');
+  const visible=password.type==='text';
+  password.type=visible?'password':'text';
+  icon.className=visible?'ti ti-eye':'ti ti-eye-off';
+  toggle.setAttribute('aria-label',visible?'Show password':'Hide password');
+  toggle.setAttribute('title',visible?'Show password':'Hide password');
 }
 
 function createProgramInBackend(program){
