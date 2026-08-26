@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiBaseUrl: 'http://localhost:5251/api/v1'
+  production: true,
+  apiBaseUrl: 'https://stitcherp-backend-production.up.railway.app/api/v1'
 };
