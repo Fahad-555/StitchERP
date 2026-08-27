@@ -469,20 +469,20 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
           <div class="kpi" onclick="goScreen('bom',document.querySelector('[onclick*=bom]'),'Create BOM')">
             <div class="kpi-ico a"><i class="ti ti-list-check"></i></div>
             <div class="kpi-lbl">Pending BOM Approvals</div>
-            <div class="kpi-val" id="d-bom-pend">1</div>
-            <div class="kpi-sub">Awaiting manager review</div>
+            <div class="kpi-val" id="d-bom-pend">0</div>
+            <div class="kpi-sub" id="d-bom-sub">Live approval data unavailable</div>
           </div>
           <div class="kpi" onclick="goScreen('po',document.querySelector('[onclick*=po]'),'Purchase Orders')">
             <div class="kpi-ico r"><i class="ti ti-file-invoice"></i></div>
             <div class="kpi-lbl">Pending PO Approvals</div>
-            <div class="kpi-val" id="d-po-pend">1</div>
-            <div class="kpi-sub">Awaiting manager review</div>
+            <div class="kpi-val" id="d-po-pend">0</div>
+            <div class="kpi-sub" id="d-po-sub">Live approval data unavailable</div>
           </div>
           <div class="kpi">
             <div class="kpi-ico g"><i class="ti ti-currency-rupee"></i></div>
             <div class="kpi-lbl">Total PO Value</div>
-            <div class="kpi-val kpi-val-currency">PKR 3.2M</div>
-            <div class="kpi-sub">Across all active POs</div>
+            <div class="kpi-val kpi-val-currency" id="d-po-value">PKR 0</div>
+            <div class="kpi-sub" id="d-po-value-sub">Live PO data unavailable</div>
           </div>
         </div>
 
@@ -1770,6 +1770,38 @@ function renderDashboard(){
     </div>`).join('')||'<div style="font-size:12px;color:var(--mu);">No accessories yet</div>';
 }
 
+async function syncDashboardLiveData(){
+  const programRequest=apiFetch('/programs').catch(()=>null);
+  const inventoryRequest=apiFetch('/inventory').catch(()=>null);
+  const purchaseOrderRequest=apiFetch('/purchase-orders').catch(()=>null);
+  const [programData, inventoryData, purchaseOrders]=await Promise.all([programRequest, inventoryRequest, purchaseOrderRequest]);
+
+  if(programData?.items){
+    const livePrograms=programData.items;
+    document.getElementById('d-prog-count').textContent=String(livePrograms.filter(program=>program.status==='ACTIVE').length);
+    document.querySelector('#screen-dashboard .kpi:nth-child(1) .kpi-sub').textContent=`${livePrograms.length} total programs`;
+    programs=livePrograms.map(program=>({
+      id:program.id, code:program.code, customer:program.customerName||'Unknown customer', custCode:'', brand:'', thread:'', weave:'', so:'', season:'', active:true,
+      status:program.status, articles:[], colors:[], sizes:[], combos:[], _api:true
+    }));
+    renderDashboard();
+  }
+
+  if(Array.isArray(inventoryData)){
+    const available=inventoryData.reduce((sum,item)=>sum+Number(item.availableQuantity||0),0);
+    document.getElementById('d-po-value-sub').textContent=`${available.toLocaleString()} units available`;
+  }
+
+  if(Array.isArray(purchaseOrders)){
+    const pending=purchaseOrders.filter(order=>['SUBMITTED','UNDER_REVIEW'].includes(order.status));
+    const total=purchaseOrders.reduce((sum,order)=>sum+Number(order.totalAmount||0),0);
+    document.getElementById('d-po-pend').textContent=String(pending.length);
+    document.getElementById('d-po-sub').textContent=`${pending.length} awaiting manager review`;
+    document.getElementById('d-po-value').textContent=`PKR ${total.toLocaleString()}`;
+    document.getElementById('d-po-value-sub').textContent=`${purchaseOrders.length} purchase orders`;
+  }
+}
+
 /* ═══════════════════════════════════════════════════
    PROGRAM LIST
 ═══════════════════════════════════════════════════ */
@@ -2709,6 +2741,7 @@ programs[2].combos=[
 
 renderDashboard();
 syncBackendData();
+syncDashboardLiveData();
 </script>
 </body>
 </html>
