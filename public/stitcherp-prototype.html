@@ -495,7 +495,7 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
             <div class="card-table">
               <table class="tbl">
                 <thead><tr><th>Program</th><th>Article</th><th>Version</th><th>Submitted By</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody>
+                <tbody id="d-bom-queue">
                   <tr>
                     <td><span class="tbl-link">ABBASCO Abbas Home 200TC Sateen</span></td>
                     <td>Bed Sheet Set</td><td>v1</td><td>user1</td>
@@ -517,7 +517,7 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
             <div class="card-table">
               <table class="tbl">
                 <thead><tr><th>PO Number</th><th>Program</th><th>Type</th><th>Value</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody>
+                <tbody id="d-po-queue">
                   <tr>
                     <td><span class="tbl-link">PO-2026-000001</span></td>
                     <td>BOUCHARA T144 Percale</td><td>Accessories</td><td>PKR 312,500</td>
@@ -1583,6 +1583,7 @@ function goScreen(id,navEl,label){
   else if(id==='p2p') renderP2P();
   else if(id==='o2c') renderO2C();
   else if(id==='users') { renderUsers(); renderRolePreview(); }
+  if(localStorage.getItem('stitcherp.session')) syncDashboardLiveData();
 }
 
 async function renderUsers(){
@@ -1799,7 +1800,12 @@ async function syncDashboardLiveData(){
     document.getElementById('d-po-sub').textContent=`${pending.length} awaiting manager review`;
     document.getElementById('d-po-value').textContent=`PKR ${total.toLocaleString()}`;
     document.getElementById('d-po-value-sub').textContent=`${purchaseOrders.length} purchase orders`;
+    const poQueue=document.getElementById('d-po-queue');
+    poQueue.innerHTML=pending.length ? pending.map(order=>`<tr><td><span class="tbl-link">${order.number}</span></td><td>Live purchase order</td><td>Procurement</td><td>PKR ${Number(order.totalAmount||0).toLocaleString()}</td><td><span class="pill pill-sub"><span class="pill-dot"></span>${order.status}</span></td><td><span class="pill pill-draft">Awaiting action</span></td></tr>`).join('') : '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--mu);font-style:italic;">No purchase orders awaiting approval</td></tr>';
   }
+
+  const bomQueue=document.getElementById('d-bom-queue');
+  if(bomQueue) bomQueue.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--mu);font-style:italic;">Live BOM approval endpoint is not available</td></tr>';
 }
 
 /* ═══════════════════════════════════════════════════
