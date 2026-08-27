@@ -1821,12 +1821,11 @@ function initCreate(){
 async function syncBackendData(){
   try{
     const [programResponse,inventoryResponse]=await Promise.all([
-      fetch(`${API_BASE}/programs`),
-      fetch(`${API_BASE}/inventory`)
+      apiFetch('/programs'),
+      apiFetch('/inventory')
     ]);
-    if(!programResponse.ok||!inventoryResponse.ok) throw new Error('Backend request failed');
-    const programData=await programResponse.json();
-    const inventoryData=await inventoryResponse.json();
+    const programData=programResponse;
+    const inventoryData=inventoryResponse;
     if(Array.isArray(programData.items)&&programData.items.length){
       programs=programData.items.map((p,index)=>({
         id:p.id,code:p.code,customer:p.customerName||'Unknown customer',custCode:'',brand:'',thread:'',weave:'',so:'',season:'',active:true,
@@ -1848,7 +1847,8 @@ async function syncBackendData(){
 }
 
 async function apiFetch(path,options={}){
-  const request={...options,headers:{'Content-Type':'application/json',...(options.headers||{})}};
+  const session=JSON.parse(localStorage.getItem('stitcherp.session')||'null');
+  const request={...options,headers:{'Content-Type':'application/json',...(session?.accessToken?{'Authorization':`Bearer ${session.accessToken}`}:{}) ,...(options.headers||{})}};
   if(request.body&&typeof request.body!=='string') request.body=JSON.stringify(request.body);
   const response=await fetch(`${API_BASE}${path}`,request);
   if(!response.ok){
@@ -1891,6 +1891,7 @@ async function changePassword(event){
 }
 
 function logoutDemo(){
+  localStorage.removeItem('stitcherp.session');
   document.getElementById('user-menu').classList.remove('open');
   document.getElementById('auth-overlay').classList.add('open');
 }
@@ -1909,6 +1910,7 @@ async function loginDemo(event){
     document.querySelector('.u-av').textContent=session.displayName.split(' ').map(name=>name[0]).join('').slice(0,2);
     document.querySelector('.av').textContent=session.displayName.split(' ').map(name=>name[0]).join('').slice(0,2);
     document.getElementById('auth-overlay').classList.remove('open');
+    await syncBackendData();
     showToast('Signed in successfully','success');
   }catch(requestError){
     error.textContent=requestError.message||'Invalid username or password.';
@@ -1979,7 +1981,7 @@ function togglePasswordVisibility(){
 
 function createProgramInBackend(program){
   return fetch(`${API_BASE}/programs`,{
-    method:'POST',headers:{'Content-Type':'application/json'},
+    method:'POST',headers:{'Content-Type':'application/json',...((()=>{const session=JSON.parse(localStorage.getItem('stitcherp.session')||'null');return session?.accessToken?{'Authorization':`Bearer ${session.accessToken}`}:{}})())},
     body:JSON.stringify({code:program.code,name:program.code,customerName:program.customer,brand:program.brand||null,organizationId:1,customerId:1})
   }).then(response=>{if(!response.ok) throw new Error('Program API rejected the request');return response.json();});
 }
