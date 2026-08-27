@@ -52,7 +52,7 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
 .bc-sep{font-size:11px;color:var(--bd);}
 .tb-right{display:flex;align-items:center;gap:10px;}
 .notif{width:32px;height:32px;border-radius:7px;border:1px solid var(--bd);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
-.notif-dot{position:absolute;top:6px;right:7px;width:6px;height:6px;background:var(--red);border-radius:50%;}
+.notif-dot{position:absolute;top:-7px;right:-7px;min-width:17px;height:17px;padding:0 4px;background:var(--red);border-radius:9px;color:#fff;font-size:10px;font-weight:800;line-height:17px;text-align:center;display:none;}
 .av{width:30px;height:30px;border-radius:50%;background:#0f766e;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
 
 /* ── BUTTONS ── */
@@ -1440,8 +1440,7 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
 </div>
 <div class="notif-menu" id="notif-menu">
   <div class="notif-menu-hdr"><span>Notifications</span><button class="modal-close" onclick="toggleNotifications()"><i class="ti ti-x"></i></button></div>
-  <div class="notif-item">BOM awaiting manager approval<small>ABBASCO Abbas Home T200 Sateen</small></div>
-  <div class="notif-item">Purchase order ready for review<small>PO-2026-000001</small></div>
+  <div id="notification-list"><div class="notif-item">Loading notifications...</div></div>
 </div>
 <div class="user-menu" id="user-menu"><button onclick="showChangePassword()"><i class="ti ti-key"></i><span>Change password</span></button><button onclick="logoutDemo()"><i class="ti ti-logout"></i><span>Log out</span></button></div>
 <div class="overlay" id="change-password-overlay" onclick="if(event.target===this)closeChangePassword()"><form class="modal" onsubmit="changePassword(event)"><div class="modal-hdr"><div class="modal-title">Change password</div><button class="modal-close" type="button" onclick="closeChangePassword()"><i class="ti ti-x"></i></button></div><div class="modal-body"><div class="fg"><label class="fl" for="current-password">Current password</label><input class="fi" id="current-password" type="password" required></div><div class="fg" style="margin-top:12px"><label class="fl" for="permanent-password">New password</label><input class="fi" id="permanent-password" type="password" minlength="8" required></div><div class="fg" style="margin-top:12px"><label class="fl" for="confirm-permanent-password">Confirm password</label><input class="fi" id="confirm-permanent-password" type="password" minlength="8" required></div><div class="auth-error" id="change-password-error"></div></div><div class="modal-footer"><button class="btn" type="button" onclick="closeChangePassword()">Cancel</button><button class="btn btn-p" type="submit">Save password</button></div></form></div>
@@ -1905,15 +1904,19 @@ async function apiFetch(path,options={}){
 
 async function loadNotifications(){
   try{
-    const notifications=await apiFetch('/notifications',{headers:{'X-User-Id':'1','X-Roles':'MANAGER'}});
-    if(!notifications.length){showToast('No new notifications','info');return;}
-    showToast(`${notifications.length} role-based notification${notifications.length===1?'':'s'} available`,'info');
+    const notifications=await apiFetch('/notifications');
+    const unread=notifications.filter(notification=>!notification.isRead).length;
+    const badge=document.querySelector('.notif-dot');
+    badge.textContent=String(unread);
+    badge.style.display=unread?'block':'none';
+    document.getElementById('notification-list').innerHTML=notifications.length ? notifications.map(notification=>`<div class="notif-item">${notification.title}<small>${notification.message}</small></div>`).join('') : '<div class="notif-item">No new notifications</div>';
   }catch(error){showToast('Notifications unavailable','error');}
 }
 
 function toggleNotifications(){
   document.getElementById('user-menu').classList.remove('open');
   document.getElementById('notif-menu').classList.toggle('open');
+  if(document.getElementById('notif-menu').classList.contains('open')) loadNotifications();
 }
 
 function toggleUserMenu(){
@@ -2754,6 +2757,7 @@ programs[2].combos=[
 renderDashboard();
 syncBackendData();
 syncDashboardLiveData();
+if(localStorage.getItem('stitcherp.session')) loadNotifications();
 </script>
 </body>
 </html>
