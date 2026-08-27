@@ -1402,7 +1402,7 @@ body{background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;hei
     <div class="auth-brand"><div class="sb-icon"><i class="ti ti-needle-thread icon-brand"></i></div><div><div class="sb-name" style="color:var(--p)">StitchERP</div><div class="sb-sub" style="color:var(--mu);opacity:1">Production Suite</div></div></div>
     <div class="auth-title">Sign in</div>
     <div class="auth-subtitle">Use the demo account to continue testing.</div>
-    <div class="fg"><label class="fl">Username</label><input class="fi" id="demo-username" value="fahad.bhutta" autocomplete="username"></div>
+    <div class="fg"><label class="fl">Username</label><input class="fi" id="demo-username" value="fahadbhutta" autocomplete="username"></div>
     <div class="fg password-field" style="margin-top:12px"><label class="fl" for="demo-password">Password</label><input class="fi" id="demo-password" type="password" value="StitchERP-Demo-2026" autocomplete="current-password"><button class="password-toggle" type="button" onclick="togglePasswordVisibility()" aria-label="Show password" title="Show password"><i class="ti ti-eye"></i></button></div>
     <div class="auth-error" id="auth-error">Use the demo credentials shown in the form.</div>
     <button class="btn btn-p full-width" style="margin-top:18px;justify-content:center" type="submit">Sign in</button>
@@ -1592,7 +1592,7 @@ async function renderUsers(){
     managedUsers=users.map(user=>({name:user.displayName,username:user.username,email:user.email,role:user.roles[0]||'VIEWER',status:user.isActive?'Active':'Disabled',id:user.id}));
   }catch(error){console.info('Admin user API unavailable; using local demo users.',error);}
   const body=document.getElementById('users-body');
-  body.innerHTML=managedUsers.map((user,index)=>`<tr><td>${user.name}</td><td>${user.username}</td><td>${user.email}</td><td><span class="pill pill-act">${roleAccess[user.role]?.label||user.role}</span></td><td>${user.status}</td><td><button class="btn btn-sm" onclick="resetManagedPassword(${index})"><i class="ti ti-key"></i>Reset</button> <button class="btn btn-sm btn-d" onclick="toggleManagedUser(${index})">${user.status==='Active'?'Disable':'Enable'}</button></td></tr>`).join('');
+  body.innerHTML=managedUsers.map((user,index)=>`<tr><td>${user.name}</td><td>${user.username}</td><td>${user.email}</td><td><span class="pill pill-act">${roleAccess[user.role]?.label||user.role}</span></td><td>${user.status}</td><td><button class="btn btn-sm" onclick="resetManagedPassword(${index})"><i class="ti ti-key"></i>Reset</button> <button class="btn btn-sm btn-d" onclick="deleteManagedUser(${index})"><i class="ti ti-trash"></i>Delete</button></td></tr>`).join('');
 }
 
 function renderRolePreview(){
@@ -1617,15 +1617,21 @@ async function createManagedUser(event){
   error.style.display='none';
   const role=document.getElementById('user-role').value;
   try{
-    const user=await apiFetch('/admin/users',{method:'POST',headers:{'X-User-Id':'1','X-Permissions':'*','X-Roles':'ADMIN'},body:{username:document.getElementById('user-username').value.trim(),email:document.getElementById('user-email').value.trim(),displayName:document.getElementById('user-name').value.trim(),organizationId:1,temporaryPassword:document.getElementById('user-password').value,roles:[role]}});
+    const response=await apiFetch('/admin/users',{method:'POST',body:{username:document.getElementById('user-username').value.trim(),email:document.getElementById('user-email').value.trim(),displayName:document.getElementById('user-name').value.trim(),organizationId:1,temporaryPassword:document.getElementById('user-password').value,roles:[role]}});
+    const user=response.user;
     managedUsers.push({name:user.displayName,username:user.username,email:user.email,role:user.roles[0]||role,status:user.isActive?'Active':'Disabled'});
-    closeUserForm(); renderUsers(); showToast('User created successfully','success');
+    closeUserForm(); renderUsers(); showToast(`User created. Verification token: ${response.verificationToken}`,'info');
   }catch(requestError){error.textContent=requestError.message||'Unable to create user.';error.style.display='block';}
 }
 
 async function toggleManagedUser(index){
   try{await apiFetch(`/admin/users/${managedUsers[index].id}/status`,{method:'PUT',headers:{'X-User-Id':'1','X-Permissions':'*','X-Roles':'ADMIN'},body:{isActive:managedUsers[index].status!=='Active'}});await renderUsers();showToast('User status updated','success');}
   catch(error){showToast(error.message,'error');}
+}
+async function deleteManagedUser(index){
+  const user=managedUsers[index];
+  if(!user?.id||!confirm(`Disable ${user.username}?`))return;
+  try{await apiFetch(`/admin/users/${user.id}`,{method:'DELETE'});await renderUsers();showToast('User deleted safely','success');}catch(error){showToast(error.message,'error');}
 }
 async function resetManagedPassword(index){
   const password=prompt('Enter temporary password (minimum 8 characters)');
